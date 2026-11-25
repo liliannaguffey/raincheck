@@ -29,8 +29,7 @@ export function About() {
         <p className="mt-2 max-w-prose text-muted">
           RainCheck is designed to estimate where you’ll be at different points
           on your drive and match those arrival times to available forecasts.
-          Driving routes use Google Maps. A later update will add OpenWeather
-          forecasts.
+          Driving routes use Google Maps, and forecasts come from OpenWeather.
         </p>
       </Card>
     </section>

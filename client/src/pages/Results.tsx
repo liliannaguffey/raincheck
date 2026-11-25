@@ -1,5 +1,6 @@
 import type { RouteRequest, RouteResponse } from "@raincheck/shared";
 import { ArrowLeft, MapPin } from "lucide-react";
+import { useState } from "react";
 import { useLocation } from "react-router";
 import { WeatherTimeline } from "../components/WeatherTimeline";
 import { useRouteWeather } from "../weather/useRouteWeather";
@@ -36,6 +37,7 @@ function TripResults({
   result: RouteResponse;
 }) {
   const weather = useRouteWeather(result.samples);
+  const [selectedWeather, setSelectedWeather] = useState<string>();
   const { route, departureUtc, arrivalUtc, samples } = result;
 
   return (
@@ -108,7 +110,12 @@ function TripResults({
         </Card>
         <Card>
           <h2 className="section-title">Driving route</h2>
-          <RouteMap result={result} />
+          <RouteMap
+            result={result}
+            weatherPoints={weather.data?.points}
+            selectedWeather={selectedWeather}
+            onWeatherSelect={setSelectedWeather}
+          />
           {result.sampling === "distance-fallback" && (
             <p className="mt-3 text-sm text-muted">
               Some points along this route use distance-based timing estimates.
@@ -116,7 +123,11 @@ function TripResults({
           )}
         </Card>
       </div>
-      <WeatherTimeline weather={weather} />
+      <WeatherTimeline
+        weather={weather}
+        selected={selectedWeather}
+        onSelect={setSelectedWeather}
+      />
     </section>
   );
 }

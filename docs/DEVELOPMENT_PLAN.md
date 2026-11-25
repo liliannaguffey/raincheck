@@ -51,7 +51,7 @@ Phase 3 passed live provider verification. Lint, formatting, both production bui
 - [x] Select OpenWeather 5 Day / 3 Hour Forecast, normalize weather fields, and test UTC forecast matching.
 - [x] Add bounded caching, request deduplication, and the route weather REST endpoint.
 - [x] Load route forecasts and display a chronological timeline with partial coverage and retry states.
-- [ ] Add interactive weather markers and map–timeline selection.
+- [x] Add interactive weather markers and map–timeline selection.
 - [ ] Run final verification and confirm live OpenWeather credentials.
 
 ## Phase 5 — Weather severity and filters

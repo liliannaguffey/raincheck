@@ -130,3 +130,17 @@
     @apply text-accent hover:bg-teal-50;
   }
 }
+
+@layer components {
+  .weather-map-pin {
+    @apply grid size-8 place-items-center rounded-full border-2 border-teal-700 bg-white text-base leading-none text-ink shadow-md;
+  }
+
+  .weather-map-pin[data-availability]:not([data-availability="available"]) {
+    @apply border-slate-500 bg-slate-100;
+  }
+
+  .weather-map-pin[data-selected="true"] {
+    @apply ring-2 ring-teal-600 ring-offset-2;
+  }
+}

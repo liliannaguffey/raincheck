@@ -1,12 +1,23 @@
-import type { RouteResponse } from "@raincheck/shared";
+import type { RouteResponse, RouteWeatherPoint } from "@raincheck/shared";
 import { useEffect, useRef, useState } from "react";
 import { onMapsAuthFailure } from "../maps/google";
 import { drawRoute } from "../maps/routeMap";
 
 const debug = import.meta.env.VITE_ROUTE_DEBUG === "true";
 
-export function RouteMap({ result }: { result: RouteResponse }) {
+export function RouteMap({
+  result,
+  weatherPoints,
+  selectedWeather,
+  onWeatherSelect,
+}: {
+  result: RouteResponse;
+  weatherPoints?: RouteWeatherPoint[];
+  selectedWeather?: string;
+  onWeatherSelect?: (id: string) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
+  const weatherLayer = useRef<Awaited<ReturnType<typeof drawRoute>>>(null);
   const [state, setState] = useState<"pending" | "ready" | "error">("pending");
 
   useEffect(() => {
@@ -19,8 +30,10 @@ export function RouteMap({ result }: { result: RouteResponse }) {
       setState("error");
     });
     void drawRoute(element, result, debug, controller.signal).then(
-      () => {
-        if (!controller.signal.aborted) setState("ready");
+      (weather) => {
+        if (controller.signal.aborted) return;
+        weatherLayer.current = weather;
+        setState("ready");
       },
       () => {
         if (!controller.signal.aborted) setState("error");
@@ -29,8 +42,18 @@ export function RouteMap({ result }: { result: RouteResponse }) {
     return () => {
       off();
       controller.abort();
+      weatherLayer.current = null;
     };
   }, [result]);
+
+  useEffect(() => {
+    if (state === "ready")
+      weatherLayer.current?.setPoints(weatherPoints ?? [], onWeatherSelect);
+  }, [state, weatherPoints, onWeatherSelect]);
+
+  useEffect(() => {
+    if (state === "ready") weatherLayer.current?.select(selectedWeather);
+  }, [state, weatherPoints, selectedWeather]);
 
   return (
     <div className="relative mt-4 h-80 overflow-hidden rounded-xl border border-line bg-canvas sm:h-104">

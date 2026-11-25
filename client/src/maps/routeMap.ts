@@ -1,6 +1,7 @@
 import type { RouteResponse, RouteSample } from "@raincheck/shared";
 import { formatArrival, formatDuration, formatMiles } from "../trips/routes";
 import { mapsLibrary } from "./google";
+import { createWeatherLayer } from "./weatherLayer";
 
 function sampleDetails(sample: RouteSample) {
   const container = document.createElement("div");
@@ -55,12 +56,14 @@ export async function drawRoute(
   });
   for (const point of route.coordinates) bounds.extend(point);
 
+  const weather = createWeatherLayer(map, AdvancedMarkerElement, InfoWindow);
   const info = debug ? new InfoWindow() : undefined;
   const pins: google.maps.marker.AdvancedMarkerElement[] = [];
   let stop = 0;
 
   function dispose() {
     signal.removeEventListener("abort", dispose);
+    weather.clear();
     info?.close();
     for (const marker of pins) marker.map = null;
     path.setMap(null);
@@ -108,6 +111,7 @@ export async function drawRoute(
       }
     }
     map.fitBounds(bounds, 36);
+    return weather;
   } catch (error) {
     dispose();
     throw error;

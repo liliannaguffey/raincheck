@@ -40,9 +40,10 @@ vi.mock("./google", () => ({
       },
       marker: {
         AdvancedMarkerElement: class {
-          constructor({ map }: { map: unknown }) {
+          constructor({ map, title }: { map: unknown; title: string }) {
             const marker = Object.assign(document.createElement("div"), {
               map,
+              title,
             });
             sdk.markers.push(marker);
             return marker;
@@ -132,4 +133,75 @@ test("enables interactive debug details for timed samples", async () => {
   expect(sdk.open).toHaveBeenCalledOnce();
   controller.abort();
   expect(sdk.close).toHaveBeenCalledOnce();
+});
+
+test("overlays weather markers on the existing map and shows point details without refitting", async () => {
+  const controller = new AbortController();
+  const weather = await drawRoute(
+    document.createElement("div"),
+    result,
+    false,
+    controller.signal,
+  );
+  const origin = result.samples[0]!;
+  const destination = result.samples.at(-1)!;
+  const select = vi.fn();
+  weather.setPoints(
+    [
+      {
+        ...origin,
+        name: "Gainesville",
+        status: "available",
+        retrievedAtUtc: start,
+        offsetSeconds: 0,
+        forecast: {
+          timestampUtc: start,
+          iconId: "10d",
+          description: "light rain",
+          temperatureC: 20,
+          feelsLikeC: 19,
+          precipitationProbability: 0,
+          windMetersPerSecond: 4,
+          gustMetersPerSecond: 8,
+          visibilityMeters: 10000,
+          humidityPercent: 60,
+        },
+      },
+      { ...destination, status: "outside-range" },
+    ],
+    select,
+  );
+  const available = sdk.markers[3]!;
+  const unavailable = sdk.markers[4]!;
+  expect(available.title).toContain("Gainesville weather");
+  expect(unavailable.title).toContain("Outside forecast coverage");
+  available.dispatchEvent(new Event("gmp-click"));
+  expect(select).toHaveBeenCalledWith("origin");
+  expect(available.firstElementChild?.getAttribute("data-selected")).toBe(
+    "true",
+  );
+  const popup = sdk.content.mock.lastCall?.[0].textContent;
+  expect(popup).toContain("Forecast time:");
+  expect(popup).toContain("Temperature: 68 °F");
+  expect(popup).toContain("Feels like: 66 °F");
+  expect(popup).toContain("Precipitation: 0%");
+  expect(popup).toContain("Wind gusts: 18 mph");
+  expect(popup).toContain("Visibility: 6.2 mi");
+  expect(popup).toContain("Humidity: 60%");
+  weather.select("destination");
+  expect(available.firstElementChild?.hasAttribute("data-selected")).toBe(
+    false,
+  );
+  expect(unavailable.firstElementChild?.getAttribute("data-selected")).toBe(
+    "true",
+  );
+  expect(sdk.content.mock.lastCall?.[0].textContent).toContain(
+    "Outside forecast coverage",
+  );
+  expect(sdk.fit).toHaveBeenCalledOnce();
+  expect(sdk.polyline).toHaveBeenCalledOnce();
+  controller.abort();
+  expect(sdk.markers.every((marker) => marker.map === null)).toBe(true);
+  available.dispatchEvent(new Event("gmp-click"));
+  expect(select).toHaveBeenCalledOnce();
 });

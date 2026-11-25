@@ -31,8 +31,8 @@ export function Planner() {
           <CloudSun className="text-accent" aria-hidden="true" />
           <h2 className="section-title mt-3">Weather along the way</h2>
           <p className="mt-2 text-muted">
-            RainCheck estimates when you’ll reach points along your route.
-            Route-based forecasts are planned for a later update.
+            RainCheck estimates when you’ll reach points along your route and
+            matches them to the closest available forecasts.
           </p>
         </Card>
       </div>

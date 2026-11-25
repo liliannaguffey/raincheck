@@ -71,14 +71,13 @@ export function weatherRouter(getWeather: RouteWeatherService) {
     async (req, res) => {
       const raw = (req.body as { samples?: unknown } | null)?.samples;
       if (!Array.isArray(raw) || raw.length === 0 || raw.length > sampleLimit) {
-        res
-          .status(400)
-          .json({
-            error: {
-              code: "INVALID_WEATHER_REQUEST",
-              message: "Provide between 1 and 256 route samples.",
-            },
-          });
+        res.status(400);
+        res.json({
+          error: {
+            code: "INVALID_WEATHER_REQUEST",
+            message: "Provide between 1 and 256 route samples.",
+          },
+        });
         return;
       }
 
@@ -87,15 +86,14 @@ export function weatherRouter(getWeather: RouteWeatherService) {
       for (const value of raw) {
         const sample = readSample(value);
         if (!sample || seen.has(sample.id)) {
-          res
-            .status(400)
-            .json({
-              error: {
-                code: "INVALID_WEATHER_SAMPLE",
-                message:
-                  "Each route sample needs a unique ID, valid coordinates, and an arrival timestamp in UTC.",
-              },
-            });
+          res.status(400);
+          res.json({
+            error: {
+              code: "INVALID_WEATHER_SAMPLE",
+              message:
+                "Each route sample needs a unique ID, valid coordinates, and an arrival timestamp in UTC.",
+            },
+          });
           return;
         }
         samples.push(sample);
@@ -105,14 +103,13 @@ export function weatherRouter(getWeather: RouteWeatherService) {
       try {
         res.json(await getWeather(samples));
       } catch {
-        res
-          .status(502)
-          .json({
-            error: {
-              code: "WEATHER_UNAVAILABLE",
-              message: "Route weather could not be loaded. Try again.",
-            },
-          });
+        res.status(502);
+        res.json({
+          error: {
+            code: "WEATHER_UNAVAILABLE",
+            message: "Route weather could not be loaded. Try again.",
+          },
+        });
       }
     },
   );

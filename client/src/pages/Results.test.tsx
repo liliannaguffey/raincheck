@@ -20,8 +20,22 @@ import { afterEach, expect, test, vi } from "vitest";
 import { Results } from "./Results";
 
 vi.mock("../components/RouteMap", () => ({
-  RouteMap: () => (
-    <div role="region" aria-label="Interactive driving route map" />
+  RouteMap: ({
+    selectedWeather,
+    onWeatherSelect,
+  }: {
+    selectedWeather?: string;
+    onWeatherSelect?: (id: string) => void;
+  }) => (
+    <div
+      role="region"
+      aria-label="Interactive driving route map"
+      data-selection={selectedWeather}
+    >
+      <button onClick={() => onWeatherSelect?.("finish")}>
+        Select weather marker
+      </button>
+    </div>
   ),
 }));
 
@@ -167,17 +181,15 @@ test("loads once, keeps the map visible, and renders a chronological partial for
 
 test("shows a horizon warning for a trip without any supported forecast times", async () => {
   openResults(
-    vi
-      .fn()
-      .mockResolvedValue(
-        Response.json({
-          ...weather,
-          points: samples.map((sample) => ({
-            ...sample,
-            status: "outside-range",
-          })),
-        }),
-      ),
+    vi.fn().mockResolvedValue(
+      Response.json({
+        ...weather,
+        points: samples.map((sample) => ({
+          ...sample,
+          status: "outside-range",
+        })),
+      }),
+    ),
   );
   expect(
     await screen.findByText(/Check again closer to departure/),
@@ -238,4 +250,29 @@ test("ignores stale weather from a previous route", async () => {
   finish(Response.json(weather));
   await waitFor(() => expect(screen.getByText("New origin")).toBeVisible());
   expect(screen.queryByText(/light rain/)).not.toBeInTheDocument();
+});
+
+test("synchronizes the timeline and map selection without fetching again", async () => {
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json(weather));
+  openResults(fetcher);
+  const origin = await screen.findByRole("button", {
+    name: "Show weather on map for Gainesville",
+  });
+  const destination = screen.getByRole("button", {
+    name: "Show weather on map for Pensacola",
+  });
+  const map = screen.getByRole("region", {
+    name: "Interactive driving route map",
+  });
+  await userEvent.click(origin);
+  expect(map).toHaveAttribute("data-selection", "start");
+  expect(origin).toHaveAttribute("aria-pressed", "true");
+  await userEvent.click(
+    within(map).getByRole("button", { name: "Select weather marker" }),
+  );
+  expect(destination).toHaveAttribute("aria-pressed", "true");
+  expect(origin).toHaveAttribute("aria-pressed", "false");
+  expect(fetcher).toHaveBeenCalledOnce();
 });
