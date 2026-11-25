@@ -55,9 +55,9 @@ Phase 3 passed live provider verification. Lint, formatting, both production bui
 - [x] Pass lint, formatting, TypeScript checks, both builds, and automated tests.
 - [x] Verify partial weather, marker details, timeline interaction, and selection without additional requests in Chrome with stubbed providers.
 - [x] Document setup, forecast matching, and cost controls in the README and [weather integration guide](WEATHER_INTEGRATION.md).
-- [ ] Verify one live Gainesville-to-Atlanta forecast trip after the OpenWeather key is configured.
+- [x] Verify a live Gainesville-to-Atlanta forecast trip with OpenWeather.
 
-Phase 4 is implemented and awaiting live OpenWeather verification. The automated suite passed 14 frontend and 62 backend tests. Chrome smoke checks passed at 320 px and 1440 px. The ignored server environment had no OpenWeather key assignment at closeout. The standard Free plan key is sufficient for the selected endpoint. Weather coverage is limited to provider-supplied three-hour slots, with a 90-minute match tolerance. Weather severity and alternative departure logic are later phases.
+Phase 4 is signed off. The automated suite passed 14 frontend and 62 backend tests. Chrome smoke checks passed at 320 px and 1440 px. After the OpenWeather key activated, a live 331-mile Gainesville-to-Atlanta trip returned forecasts for all 11 route samples. The live browser check confirmed UTC matching, separate arrival and forecast times, and forecast details on the Google map. A repeated lookup for one sample reused the cached series. Weather coverage is limited to provider-supplied three-hour slots, with a 90-minute match tolerance. Weather severity and alternative departure logic are later phases.
 
 ## Phase 5 — Weather severity and filters
 
