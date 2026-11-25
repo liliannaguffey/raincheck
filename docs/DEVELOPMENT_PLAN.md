@@ -27,7 +27,10 @@ The preview interprets departure input in the device’s time zone, stores it as
 ## Phase 3 — Google Maps integration
 
 - Configure Maps JavaScript, Places, and Routes APIs. Add autocomplete, driving directions, route map, endpoint markers, distance, and duration.
-- Extract timed route geometry and sample by elapsed travel time. Document distance-based fallback limitations and test sampling and arrival times.
+- [x] Implement timed geometry interpolation, distance fallback, and origin-zone time utilities with unit tests.
+- [ ] Connect the Google providers and verify the route API with mocked responses.
+- [ ] Connect the planner, route summary, interactive map, and debug markers.
+- [ ] Verify live calls with configured Google credentials.
 
 ## Phase 4 — Weather API integration
 

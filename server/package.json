@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@js-temporal/polyfill": "^0.5.1",
     "@raincheck/shared": "0.0.0",
     "express": "^5.1.0"
   },
