@@ -37,6 +37,14 @@ The preview interprets departure input in the device’s time zone, stores it as
 
 Core functionality is implemented and awaiting live provider verification. Lint, formatting, both production builds with TypeScript checks, 8 frontend tests, and 25 backend tests passed. Chrome smoke tests at 320 px and 1440 px exercised autocomplete, route submission, the map, and a sample marker with stubbed Google data. The running API returned the expected missing-key error. The route API takes an origin-local departure and returns UTC samples. Named stops use local time when Google returns a zone. Unresolved display zones use UTC. Estimates assume no additional stop time. The results page identifies routes with distance-based interpolation.
 
+### Live sign-off status
+
+- The sign-off run confirmed both local `.env` files exist and are ignored and untracked. The credential fields in the tracked templates are blank.
+- Both development servers started. The direct API and Vite proxy returned healthy responses, and the running route endpoint returned the expected structured error with a missing server key. Chrome also verified the missing browser key message and observed zero outbound Google requests in that case.
+- All 33 automated tests passed again, with zero failures. Lint, formatting, TypeScript checks, both production builds, and the Chrome smoke flow with stubbed Google providers passed.
+- Live verification is pending. Neither local file contained its required key assignment when checked. Maps JavaScript, Places API (New), Routes, and Time Zone remain unverified against Google, including the Gainesville–Atlanta and Gainesville–Pensacola trips.
+- The shared `RouteSample` contract provides coordinates and estimated UTC arrival timestamps for Phase 4. Phase 3 sign-off remains open until live routing, map rendering, and the Eastern-to-Central trip are verified.
+
 ## Phase 4 — Weather API integration
 
 - Integrate OpenWeather in the backend and expose normalized forecast results through REST.

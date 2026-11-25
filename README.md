@@ -28,7 +28,13 @@ Open [RainCheck](http://127.0.0.1:5173). The Express API listens on port 3001 by
 4. Copy `client/.env.example` and `server/.env.example` to `client/.env` and `server/.env`. Set `VITE_GOOGLE_MAPS_API_KEY` in the client and `GOOGLE_MAPS_SERVER_API_KEY` in the server. If the API port changes, update `API_PROXY_TARGET` to match. Restart both development servers after editing the files.
 5. Optionally create a JavaScript [map ID](https://developers.google.com/maps/documentation/javascript/advanced-markers/start) and set `VITE_GOOGLE_MAP_ID`. The default Google demo map ID supports local testing. Use a project map ID for production.
 
-To verify live, select a suggestion in each required location field, choose a future departure in the origin's local time, and calculate the route. Check the route line, markers, distance, duration, and endpoint-local time labels. The project’s automated checks stub provider calls, so they incur no Google API charges.
+### Live sign-off
+
+1. Open the exact loopback URL allowed by the browser key. Choose an upcoming date at 8:00 AM Gainesville time. Select **Gainesville, FL** as the origin, **Atlanta, GA** as the destination, and **Valdosta, GA** as an optional stop. Check that the map fits the route, the line follows the driving directions, and the summary shows distance, duration, and estimated arrival.
+2. Edit that trip, remove Valdosta, and change the destination to **Pensacola, FL**. Confirm that submitting an edited destination before selecting a suggestion prompts you to select one. Select Pensacola and calculate the route. Gainesville should display Eastern time and Pensacola should display Central time. Driving duration is the difference between the UTC timestamps.
+3. With `VITE_ROUTE_DEBUG=true` set before starting Vite, select a sample marker to inspect its coordinates, UTC arrival when a point has no named time zone, elapsed time, and cumulative distance. Check that elapsed time and distance increase along the route and that the destination sample matches the final stop.
+
+The automated checks stub provider calls and incur no Google API charges.
 
 Autocomplete waits for three characters and a short pause, with a session token per input session. A completed route uses one Routes request, an origin Time Zone lookup, and up to one lookup per distinct named stop or destination. Configure billing budgets and API quotas in Google Cloud. Review [Google’s key restrictions](https://developers.google.com/maps/api-security-best-practices) and [Maps JavaScript policies](https://developers.google.com/maps/documentation/javascript/policies) before a public deployment, including the need for public terms and a privacy policy. Keep the prototype API local until you have controls on public access and usage.
 
