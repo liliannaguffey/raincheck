@@ -1,6 +1,7 @@
 import type { RouteRequest, RouteResponse } from "@raincheck/shared";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useLocation } from "react-router";
+import { RouteMap } from "../components/RouteMap";
 import { ActionLink, Card } from "../components/ui";
 import { formatArrival, formatDuration, formatMiles } from "../trips/routes";
 
@@ -92,6 +93,15 @@ export function Results() {
           <p className="mt-2 text-xs font-medium text-muted" translate="no">
             Google Maps
           </p>
+        </Card>
+        <Card>
+          <h2 className="section-title">Driving route</h2>
+          <RouteMap result={result} />
+          {result.sampling === "distance-fallback" && (
+            <p className="mt-3 text-sm text-muted">
+              Some points along this route use distance-based timing estimates.
+            </p>
+          )}
         </Card>
       </div>
     </section>
