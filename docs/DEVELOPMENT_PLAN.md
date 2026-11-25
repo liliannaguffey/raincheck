@@ -62,7 +62,7 @@ Phase 4 is signed off. The automated suite passed 14 frontend and 62 backend tes
 ## Phase 5 — Weather severity and filters
 
 - [x] Classify forecasts using centralized thresholds and retain individual hazard evidence.
-- [ ] Segment existing road geometry and summarize weather coverage and exposure.
+- [x] Segment existing road geometry and summarize weather coverage and exposure.
 - [ ] Render route colors, grouped advisories, severity indicators, and local weather filters.
 - [ ] Run automated and live verification.
 - Terrain assessment is pending confirmed Elevation API configuration and budget approval.

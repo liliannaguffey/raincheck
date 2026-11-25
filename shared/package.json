@@ -5,6 +5,7 @@
   "exports": {
     ".": {
       "types": "./src/index.ts"
-    }
+    },
+    "./route-weather": "./src/routeWeather.ts"
   }
 }
