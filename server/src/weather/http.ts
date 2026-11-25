@@ -46,7 +46,11 @@ function readSample(value: unknown): RouteSample | undefined {
     return;
 
   try {
-    Temporal.Instant.from(arrivalUtc);
+    if (
+      Temporal.Instant.from(arrivalUtc).epochMilliseconds !==
+      Date.parse(arrivalUtc)
+    )
+      return;
     if (timeZone !== undefined) new Intl.DateTimeFormat("en", { timeZone });
   } catch {
     return;

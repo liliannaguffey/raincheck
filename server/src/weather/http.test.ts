@@ -108,6 +108,7 @@ test.each(
     [sample, sample],
     [{ ...sample, coordinate: { lat: 91, lng: 0 } }],
     [{ ...sample, arrivalUtc: "2030-02-30T00:00:00Z" }],
+    [{ ...sample, arrivalUtc: "2016-12-31T23:59:60Z" }],
     [{ ...sample, arrivalUtc: "2030-06-15T22:00:00-04:00" }],
     [null],
     Array(257).fill(sample),
