@@ -1,6 +1,8 @@
 import type { HealthResponse } from "@raincheck/shared";
 import express from "express";
 
+import { departureRouter } from "./departures/http.ts";
+import { createDepartureService } from "./departures/service.ts";
 import { routeRouter } from "./routes/http.ts";
 import { createRouteService } from "./routes/service.ts";
 
@@ -10,6 +12,7 @@ import { createRouteWeather } from "./weather/service.ts";
 export function createApp(
   calculateRoute = createRouteService(),
   getWeather = createRouteWeather(),
+  getDepartures = createDepartureService(getWeather),
 ) {
   const app = express();
 
@@ -20,5 +23,6 @@ export function createApp(
 
   app.use("/api/routes", routeRouter(calculateRoute));
   app.use("/api/weather", weatherRouter(getWeather));
+  app.use("/api/departures", departureRouter(getDepartures));
   return app;
 }

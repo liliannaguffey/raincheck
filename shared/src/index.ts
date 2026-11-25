@@ -248,4 +248,5 @@ export interface DepartureResponse {
     | "no-improvement";
   resolutionSeconds: number;
   minimumCoverage: number;
+  horizonSeconds: number;
 }
