@@ -77,10 +77,10 @@ function meters(value: unknown) {
 }
 
 function coordinate(location?: Location) {
-  const point = {
-    lat: location?.latLng?.latitude,
-    lng: location?.latLng?.longitude,
-  };
+  if (!location?.latLng || typeof location.latLng !== "object")
+    throw invalidResponse();
+  const { latitude = 0, longitude = 0 } = location.latLng;
+  const point = { lat: latitude, lng: longitude };
   if (!isCoordinate(point)) throw invalidResponse();
   return point;
 }

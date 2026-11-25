@@ -147,3 +147,13 @@ test("rejects invalid and ambiguous departures and adds elapsed time across DST"
     localDepartureToUtc("2026-03-08T03:30", "America/New_York"),
   );
 });
+
+test("deduplicates a waypoint colocated with the destination", () => {
+  const last = { ...leg(1, 1, 0), distanceMeters: 0 };
+  const { samples } = sampleRoute(route(leg(0, 1, 1800), last), departure);
+  expect(samples.map(({ kind }) => kind)).toEqual(["origin", "destination"]);
+  expect(samples[1]).toMatchObject({
+    coordinate: point(1),
+    elapsedSeconds: 1800,
+  });
+});

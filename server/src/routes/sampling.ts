@@ -175,9 +175,12 @@ export function sampleRoute(
     const previous = samples.at(-1);
     const duplicate =
       previous &&
-      previous.elapsedSeconds === legEnd &&
+      Math.abs(previous.elapsedSeconds - legEnd) <= tolerance &&
+      Math.abs(previous.distanceMeters - distanceEnd) <= tolerance &&
       previous.coordinate.lat === leg.end.lat &&
       previous.coordinate.lng === leg.end.lng;
+    if (duplicate && kind === "destination" && previous.kind === "waypoint")
+      samples.pop();
     if (kind === "destination" || !duplicate) {
       include(kind, leg.end, legEnd, distanceEnd, stops[index + 1]);
     }
