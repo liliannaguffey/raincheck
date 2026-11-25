@@ -9,7 +9,7 @@ export function SavedTrips() {
         <Bookmark className="text-accent" aria-hidden="true" />
         <h2 className="section-title mt-3">Trip saving is coming later</h2>
         <p className="mt-2 text-muted">
-          Use the trip planner to explore a sample route preview.
+          Use the trip planner to calculate a driving route.
         </p>
         <ActionLink className="mt-5" to="/">
           Open trip planner

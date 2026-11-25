@@ -6,7 +6,7 @@ interface FieldProps extends ComponentProps<"input"> {
   error?: string;
 }
 
-export function Field({ label, id, error, ...props }: FieldProps) {
+export function Field({ label, id, error, children, ...props }: FieldProps) {
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
@@ -14,8 +14,13 @@ export function Field({ label, id, error, ...props }: FieldProps) {
         {...props}
         id={id}
         aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${id}-error` : props["aria-describedby"]}
+        aria-describedby={
+          [error && `${id}-error`, props["aria-describedby"]]
+            .filter(Boolean)
+            .join(" ") || undefined
+        }
       />
+      {children}
       {error && (
         <span className="field-error" id={`${id}-error`}>
           {error}
