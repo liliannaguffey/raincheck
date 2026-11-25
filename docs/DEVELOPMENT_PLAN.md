@@ -33,17 +33,18 @@ The preview interprets departure input in the device’s time zone, stores it as
 - [x] Render the interactive map and optional debug markers.
 - [x] Document Google API setup, usage, timing estimates, and interpolation in the README and [route sampling guide](ROUTE_SAMPLING.md).
 - [x] Pass automated checks and Chrome smoke tests with mocked Google Maps.
-- [ ] Verify live Google API calls after the browser and server keys are configured.
+- [x] Verify live Maps JavaScript, Places API (New), Routes, and Time Zone requests with two representative trips.
 
-Core functionality is implemented and awaiting live provider verification. Lint, formatting, both production builds with TypeScript checks, 8 frontend tests, and 25 backend tests passed. Chrome smoke tests at 320 px and 1440 px exercised autocomplete, route submission, the map, and a sample marker with stubbed Google data. The running API returned the expected missing-key error. The route API takes an origin-local departure and returns UTC samples. Named stops use local time when Google returns a zone. Unresolved display zones use UTC. Estimates assume no additional stop time. The results page identifies routes with distance-based interpolation.
+Phase 3 passed live provider verification. Lint, formatting, both production builds with TypeScript checks, 8 frontend tests, and 25 backend tests passed. Chrome smoke tests at 320 px and 1440 px exercised autocomplete, route submission, the map, and a sample marker with stubbed Google data. The running API returned the expected missing-key error. The route API takes an origin-local departure and returns UTC samples. Named stops use local time when Google returns a zone. Unresolved display zones use UTC. Estimates assume no additional stop time. The results page identifies routes with distance-based interpolation.
 
 ### Live sign-off status
 
 - The sign-off run confirmed both local `.env` files exist and are ignored and untracked. The credential fields in the tracked templates are blank.
 - Both development servers started. The direct API and Vite proxy returned healthy responses, and the running route endpoint returned the expected structured error with a missing server key. Chrome also verified the missing browser key message and observed zero outbound Google requests in that case.
 - All 33 automated tests passed again, with zero failures. Lint, formatting, TypeScript checks, both production builds, and the Chrome smoke flow with stubbed Google providers passed.
-- Live verification is pending. Neither local file contained its required key assignment when checked. Maps JavaScript, Places API (New), Routes, and Time Zone remain unverified against Google, including the Gainesville–Atlanta and Gainesville–Pensacola trips.
-- The shared `RouteSample` contract provides coordinates and estimated UTC arrival timestamps for Phase 4. Phase 3 sign-off remains open until live routing, map rendering, and the Eastern-to-Central trip are verified.
+- After both local key assignments were saved, Chrome completed live trips through all four Google APIs. Gainesville to Atlanta via Valdosta returned about 334 miles, 5 hours 20 minutes, and 13 samples. Gainesville to Pensacola returned about 344 miles, 4 hours 59 minutes, and 11 samples. Both used step-duration sampling.
+- Live checks covered selecting origin, destination, and waypoint suggestions, invalidating a destination on edit, rendering Google Maps and opening a debug marker, and checking sample intervals, UTC arrivals, cumulative distances, uniqueness, and the destination sample. The Pensacola trip resolved `America/New_York` at departure and `America/Chicago` at arrival. The browser used Pacific time during testing to verify that Gainesville's departure was interpreted in Eastern time.
+- Phase 3 is signed off. The shared `RouteSample` contract provides coordinates and estimated UTC arrival timestamps for Phase 4.
 
 ## Phase 4 — Weather API integration
 
