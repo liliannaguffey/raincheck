@@ -95,8 +95,9 @@ export type WeatherFailureCode =
   | "WEATHER_UNAVAILABLE"
   | "INVALID_WEATHER_RESPONSE";
 
-export type RouteWeatherPoint = RouteSample &
-  (
+export type RouteWeatherPoint = RouteSample & {
+  classification?: WeatherClassification;
+} & (
     | {
         status: "available";
         forecast: Forecast;
@@ -116,4 +117,73 @@ export interface RouteWeatherResponse {
   resolutionSeconds: number;
   horizonSeconds: number;
   points: RouteWeatherPoint[];
+}
+
+export type WeatherSeverity = "favorable" | "caution" | "hazardous" | "unknown";
+export type HazardCategory =
+  "rain" | "snow-ice" | "visibility" | "thunderstorms" | "winds";
+
+export interface WeatherHazard {
+  id:
+    | "rain"
+    | "snow"
+    | "freezing"
+    | "visibility"
+    | "thunderstorm"
+    | "wind"
+    | "gust";
+  category: HazardCategory;
+  severity: "caution" | "hazardous";
+  label: string;
+  explanation: string;
+  measurement?: {
+    value: number;
+    unit: string;
+    threshold?: number;
+    comparison?: "at-least" | "at-most";
+  };
+}
+
+export interface WeatherClassification {
+  severity: WeatherSeverity;
+  hazards: WeatherHazard[];
+  availability: RouteWeatherPoint["status"];
+  completeness: "sufficient" | "limited" | "unavailable";
+  explanation: string;
+}
+
+export interface RouteWeatherSegment {
+  id: string;
+  coordinates: RouteCoordinate[];
+  start: RouteSample;
+  end: RouteSample;
+  severity: WeatherSeverity;
+  distanceMeters: number;
+  durationSeconds: number;
+  hazards: WeatherHazard[];
+}
+
+export interface RouteHazardSection {
+  id: string;
+  hazard: WeatherHazard;
+  start: RouteSample;
+  end: RouteSample;
+  sampleIds: string[];
+  segmentIds: string[];
+}
+
+export interface RouteWeatherSummary {
+  severity: WeatherSeverity;
+  bySeverity: Record<
+    WeatherSeverity,
+    { seconds: number; meters: number; sections: number }
+  >;
+  coverageFraction: number | null;
+  exposureSeconds: number;
+}
+
+export interface RouteTerrainSample {
+  sampleId: string;
+  elevationMeters: number;
+  resolutionMeters?: number;
 }

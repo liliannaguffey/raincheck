@@ -4,6 +4,7 @@ import type {
   RouteWeatherResponse,
 } from "@raincheck/shared";
 import { createForecastCache } from "./cache.ts";
+import { classifyPoint } from "./severity.ts";
 import { matchForecast } from "./match.ts";
 import { createOpenWeather, WeatherError } from "./openWeather.ts";
 import type { ForecastProvider } from "./openWeather.ts";
@@ -71,7 +72,7 @@ export function createRouteWeather({
     );
     return {
       provider: "OpenWeather",
-      points,
+      points: points.map((point) => classifyPoint(point, resolutionSeconds)),
       resolutionSeconds,
       horizonSeconds,
     };

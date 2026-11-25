@@ -61,9 +61,11 @@ Phase 4 is signed off. The automated suite passed 14 frontend and 62 backend tes
 
 ## Phase 5 — Weather severity and filters
 
-- Configure and document severity thresholds. Detect weather hazards and consider terrain where supported by both elevation and weather data.
-- Add severity overlays, legends, alerts, accessible status text, and local filters for rain, snow, fog, thunderstorms, and high winds.
-- Test severity and filtering.
+- [x] Classify forecasts using centralized thresholds and retain individual hazard evidence.
+- [ ] Segment existing road geometry and summarize weather coverage and exposure.
+- [ ] Render route colors, grouped advisories, severity indicators, and local weather filters.
+- [ ] Run automated and live verification.
+- Terrain assessment is pending confirmed Elevation API configuration and budget approval.
 
 ## Phase 6 — Departure time optimization
 
