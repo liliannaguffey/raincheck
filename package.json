@@ -2,7 +2,7 @@
   "name": "raincheck",
   "private": true,
   "engines": {
-    "node": "^22.12.0 || >=24.0.0"
+    "node": "^24.0.0"
   },
   "workspaces": [
     "client",
@@ -13,9 +13,16 @@
     "dev:client": "npm run dev -w @raincheck/client",
     "build": "npm run build --workspaces --if-present",
     "dev:server": "npm run dev -w @raincheck/server",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.15.0",
+    "prettier": "^3.10.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.74.0"
   }
 }

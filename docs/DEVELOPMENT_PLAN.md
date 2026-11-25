@@ -7,9 +7,9 @@
 - [x] Set up React, TypeScript, Vite, and Tailwind in client.
 - [x] Set up Express and TypeScript in server, with a typed health endpoint.
 - [x] Establish shared contracts, npm workspaces, and startup scripts.
-- [ ] Add ESLint, Prettier, environment templates, and initial README.
-- [ ] Verify development startup, production build, lint, formatting, and tests.
-- [ ] Push the phase to GitHub and report the remote branch status.
+- [x] Add ESLint, Prettier, environment templates, and initial README.
+- [x] Verify development startup, production build, lint, formatting, and tests.
+- Published the planning and frontend milestones to origin/develop. The phase closeout includes a final push and remote commit verification.
 
 ## Phase 2 — Frontend foundation
 
@@ -62,3 +62,9 @@
 - Phase 3 requires separate browser and server Google Maps credentials, with API and browser referrer restrictions where applicable.
 - Phase 4 requires an OpenWeather key and a configured forecast endpoint. Available intervals and coverage depend on the endpoint.
 - Phase 7 requires a PostgreSQL connection and access controls for saved trips.
+
+## Phase 1 verification
+
+- Vite served the starter page and transformed React source. Express returned HTTP 200 with the expected JSON directly and through the Vite proxy.
+- ESLint, Prettier, the frontend and backend production builds, and the Vitest/Supertest health check passed.
+- Known issues: none found in the Phase 1 scaffold. The trip planning interface and mocked results are Phase 2 work.
