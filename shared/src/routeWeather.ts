@@ -25,8 +25,11 @@ function strongest(a: WeatherSeverity, b: WeatherSeverity) {
 }
 
 export function assessment(point?: RouteWeatherPoint): WeatherClassification {
+  const classification = point?.classification;
   return (
-    point?.classification ?? {
+    (classification && Object.hasOwn(rank, classification.severity)
+      ? classification
+      : undefined) ?? {
       severity: "unknown",
       hazards: [],
       availability: point?.status ?? "unavailable",
@@ -108,36 +111,19 @@ function combineHazards(hazards: WeatherHazard[]) {
   return [...combined.values()];
 }
 
-export function segmentRouteWeather(
-  { route, samples }: RouteResponse,
+export function weatherIntervals(
+  samples: RouteResponse["samples"],
   points: RouteWeatherPoint[],
-): RouteWeatherSegment[] {
-  if (!route.coordinates.length || samples.length < 2) return [];
+): Omit<RouteWeatherSegment, "coordinates">[] {
   const assessed = new Map(
     points.map((point) => [point.id, assessment(point)]),
   );
-  const path = routePath(route.coordinates);
-  const segments: RouteWeatherSegment[] = [];
-  let startPosition = 0;
-
-  for (let i = 1; i < samples.length; i++) {
-    const start = samples[i - 1]!;
-    const end = samples[i]!;
-    const endPosition =
-      i === samples.length - 1
-        ? route.coordinates.length - 1
-        : path.project(
-            end.coordinate,
-            startPosition,
-            route.distanceMeters
-              ? end.distanceMeters / route.distanceMeters
-              : 0,
-          );
+  return samples.slice(1).map((end, index) => {
+    const start = samples[index]!;
     const from = assessed.get(start.id) ?? assessment();
     const to = assessed.get(end.id) ?? assessment();
-    segments.push({
-      id: `weather-section-${i}`,
-      coordinates: path.slice(startPosition, endPosition),
+    return {
+      id: `weather-section-${index + 1}`,
       start,
       end,
       severity:
@@ -147,10 +133,33 @@ export function segmentRouteWeather(
       distanceMeters: Math.max(0, end.distanceMeters - start.distanceMeters),
       durationSeconds: Math.max(0, end.elapsedSeconds - start.elapsedSeconds),
       hazards: combineHazards([...from.hazards, ...to.hazards]),
-    });
+    };
+  });
+}
+
+export function segmentRouteWeather(
+  { route, samples }: RouteResponse,
+  points: RouteWeatherPoint[],
+): RouteWeatherSegment[] {
+  if (!route.coordinates.length || samples.length < 2) return [];
+  const path = routePath(route.coordinates);
+  let startPosition = 0;
+
+  return weatherIntervals(samples, points).map((interval, index) => {
+    const endPosition =
+      index === samples.length - 2
+        ? route.coordinates.length - 1
+        : path.project(
+            interval.end.coordinate,
+            startPosition,
+            route.distanceMeters
+              ? interval.end.distanceMeters / route.distanceMeters
+              : 0,
+          );
+    const coordinates = path.slice(startPosition, endPosition);
     startPosition = endPosition;
-  }
-  return segments;
+    return { ...interval, coordinates };
+  });
 }
 
 export function groupRouteHazards(
