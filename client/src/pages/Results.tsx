@@ -1,12 +1,14 @@
 import type { RouteRequest, RouteResponse } from "@raincheck/shared";
 import { ArrowLeft, MapPin } from "lucide-react";
 import { useLocation } from "react-router";
+import { WeatherTimeline } from "../components/WeatherTimeline";
+import { useRouteWeather } from "../weather/useRouteWeather";
 import { RouteMap } from "../components/RouteMap";
 import { ActionLink, Card } from "../components/ui";
 import { formatArrival, formatDuration, formatMiles } from "../trips/routes";
 
 export function Results() {
-  const { state } = useLocation();
+  const { state, key } = useLocation();
   const planned = state as { trip: RouteRequest; result: RouteResponse } | null;
 
   if (!planned?.trip || !planned.result) {
@@ -23,7 +25,17 @@ export function Results() {
     );
   }
 
-  const { trip, result } = planned;
+  return <TripResults key={key} {...planned} />;
+}
+
+function TripResults({
+  trip,
+  result,
+}: {
+  trip: RouteRequest;
+  result: RouteResponse;
+}) {
+  const weather = useRouteWeather(result.samples);
   const { route, departureUtc, arrivalUtc, samples } = result;
 
   return (
@@ -104,6 +116,7 @@ export function Results() {
           )}
         </Card>
       </div>
+      <WeatherTimeline weather={weather} />
     </section>
   );
 }
