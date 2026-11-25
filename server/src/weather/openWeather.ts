@@ -7,6 +7,7 @@ import type {
 export interface ForecastSeries {
   forecasts: Forecast[];
   retrievedAtUtc: string;
+  cacheForMs?: number;
 }
 
 export interface ForecastProvider {
@@ -75,6 +76,19 @@ function normalize(value: unknown): Forecast | undefined {
     return forecast;
 }
 
+function cacheLifetime(headers: Headers) {
+  const control = headers.get("Cache-Control") ?? "";
+  if (/\b(?:no-store|no-cache|private)\b/i.test(control)) return 0;
+  const maxAge = /(?:^|,)\s*max-age=(\d+)(?:,|$)/i.exec(control)?.[1];
+  const age = Number(headers.get("Age") ?? 0);
+  return maxAge === undefined
+    ? undefined
+    : Math.max(
+        0,
+        Number(maxAge) - (Number.isFinite(age) && age > 0 ? age : 0),
+      ) * 1000;
+}
+
 export function createOpenWeather({
   key = process.env.OPENWEATHER_API_KEY,
   fetcher = fetch,
@@ -137,6 +151,7 @@ export function createOpenWeather({
           a.timestampUtc.localeCompare(b.timestampUtc),
         ),
         retrievedAtUtc: new Date(now()).toISOString(),
+        cacheForMs: cacheLifetime(response.headers),
       };
     },
   };

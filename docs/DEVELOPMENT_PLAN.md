@@ -49,7 +49,7 @@ Phase 3 passed live provider verification. Lint, formatting, both production bui
 ## Phase 4 — Weather API integration
 
 - [x] Select OpenWeather 5 Day / 3 Hour Forecast, normalize weather fields, and test UTC forecast matching.
-- [ ] Add bounded caching, request deduplication, and the route weather REST endpoint.
+- [x] Add bounded caching, request deduplication, and the route weather REST endpoint.
 - [ ] Add weather markers, timeline, and coverage states.
 - [ ] Run final verification and confirm live OpenWeather credentials.
 
