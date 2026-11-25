@@ -187,3 +187,65 @@ export interface RouteTerrainSample {
   elevationMeters: number;
   resolutionMeters?: number;
 }
+
+export interface DepartureFlexibility {
+  hours: 0 | 1 | 2 | 3 | 6;
+  direction: "earlier" | "later" | "either";
+  intervalMinutes?: 30 | 60;
+}
+
+export interface DepartureRequest {
+  departureUtc: string;
+  samples: RouteSample[];
+  flexibility: DepartureFlexibility;
+}
+
+export interface DepartureCandidate {
+  id: string;
+  departureUtc: string;
+  departureLocal: string;
+  originTimeZone: string;
+  arrivalUtc: string;
+  arrivalLocal: string;
+  destinationTimeZone: string;
+  offsetSeconds: number;
+  durationSeconds: number;
+  exposure: Record<WeatherSeverity, number>;
+  coverageFraction: number;
+  score: number | null;
+  hazards: Partial<
+    Record<WeatherHazard["id"], { label: string; seconds: number }>
+  >;
+  eligibility: "eligible" | "insufficient-coverage" | "reduced-coverage";
+}
+
+export interface DepartureRecommendation extends DepartureCandidate {
+  distinction: "best-overall" | "best-earlier" | "best-later" | "alternative";
+  points: RouteWeatherPoint[];
+  improvement: {
+    scorePoints: number;
+    hazardousSeconds: number;
+    cautionSeconds: number;
+    reducedHazards: {
+      label: string;
+      originalSeconds: number;
+      candidateSeconds: number;
+    }[];
+    newHazards: string[];
+  };
+}
+
+export interface DepartureResponse {
+  baseline: DepartureCandidate;
+  evaluatedCount: number;
+  recommendations: DepartureRecommendation[];
+  status:
+    | "available"
+    | "no-flexibility"
+    | "no-future-candidates"
+    | "insufficient-coverage"
+    | "weather-unavailable"
+    | "no-improvement";
+  resolutionSeconds: number;
+  minimumCoverage: number;
+}

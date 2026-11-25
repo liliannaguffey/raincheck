@@ -75,8 +75,10 @@ Phase 5 weather severity is signed off. All 108 automated tests passed, includin
 
 ## Phase 6 — Departure time optimization
 
-- Evaluate departures within a configurable window starting at ±3 hours and reuse forecasts across candidates.
-- Document and test exposure scoring. Present comparable options, hazard differences, uncertainty, and cases with no meaningful improvement.
+- [x] Generate bounded departure candidates and recalculate sample arrivals in UTC.
+- [ ] Score and rank comparable departure candidates and reuse cached forecasts.
+- [ ] Add configuration, comparisons, previews, and apply and restore controls.
+- [ ] Verify the implementation with fixtures and a representative live trip.
 
 ## Phase 7 — PostgreSQL and saved trips
 
