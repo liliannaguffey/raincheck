@@ -67,3 +67,53 @@ export interface RouteResponse {
 export interface RouteErrorResponse {
   error: { code: string; message: string };
 }
+
+export interface Forecast {
+  timestampUtc: string;
+  temperatureC?: number;
+  feelsLikeC?: number;
+  condition?: string;
+  description?: string;
+  conditionId?: number;
+  iconId?: string;
+  precipitationProbability?: number;
+  rainMm?: number;
+  snowMm?: number;
+  windMetersPerSecond?: number;
+  gustMetersPerSecond?: number;
+  windDirectionDegrees?: number;
+  visibilityMeters?: number;
+  humidityPercent?: number;
+  cloudPercent?: number;
+}
+
+export type WeatherFailureCode =
+  | "WEATHER_NOT_CONFIGURED"
+  | "WEATHER_ACCESS_DENIED"
+  | "WEATHER_RATE_LIMIT"
+  | "WEATHER_TIMEOUT"
+  | "WEATHER_UNAVAILABLE"
+  | "INVALID_WEATHER_RESPONSE";
+
+export type RouteWeatherPoint = RouteSample &
+  (
+    | {
+        status: "available";
+        forecast: Forecast;
+        offsetSeconds: number;
+        retrievedAtUtc: string;
+      }
+    | { status: "outside-range" | "unavailable" }
+    | { status: "failed"; code: WeatherFailureCode }
+  );
+
+export interface RouteWeatherRequest {
+  samples: RouteSample[];
+}
+
+export interface RouteWeatherResponse {
+  provider: "OpenWeather";
+  resolutionSeconds: number;
+  horizonSeconds: number;
+  points: RouteWeatherPoint[];
+}

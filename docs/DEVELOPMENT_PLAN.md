@@ -48,9 +48,10 @@ Phase 3 passed live provider verification. Lint, formatting, both production bui
 
 ## Phase 4 — Weather API integration
 
-- Integrate OpenWeather in the backend and expose normalized forecast results through REST.
-- Match arrival times to available provider intervals and handle forecast coverage and missing data.
-- Show point forecasts and details on the map and test against mocked provider responses.
+- [x] Select OpenWeather 5 Day / 3 Hour Forecast, normalize weather fields, and test UTC forecast matching.
+- [ ] Add bounded caching, request deduplication, and the route weather REST endpoint.
+- [ ] Add weather markers, timeline, and coverage states.
+- [ ] Run final verification and confirm live OpenWeather credentials.
 
 ## Phase 5 — Weather severity and filters
 
