@@ -1,11 +1,21 @@
 {
   "name": "raincheck",
   "private": true,
-  "engines": { "node": "^22.12.0 || >=24.0.0" },
-  "workspaces": ["client"],
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0"
+  },
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
   "scripts": {
     "dev:client": "npm run dev -w @raincheck/client",
-    "build": "npm run build --workspaces"
+    "build": "npm run build --workspaces --if-present",
+    "dev:server": "npm run dev -w @raincheck/server",
+    "test": "npm run test --workspaces --if-present"
   },
-  "devDependencies": { "typescript": "^5.9.3" }
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
 }

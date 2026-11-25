@@ -5,8 +5,8 @@
 - [x] Inspect the local folder and designated GitHub repository.
 - [x] Initialize the empty repository on develop and configure origin.
 - [x] Set up React, TypeScript, Vite, and Tailwind in client.
-- [ ] Set up Express and TypeScript in server, with a typed health endpoint.
-- [ ] Establish shared contracts, npm workspaces, and startup scripts.
+- [x] Set up Express and TypeScript in server, with a typed health endpoint.
+- [x] Establish shared contracts, npm workspaces, and startup scripts.
 - [ ] Add ESLint, Prettier, environment templates, and initial README.
 - [ ] Verify development startup, production build, lint, formatting, and tests.
 - [ ] Push the phase to GitHub and report the remote branch status.
