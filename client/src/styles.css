@@ -1,1 +1,112 @@
 @import "tailwindcss";
+
+@theme {
+  --color-canvas: #f3f8f8;
+  --color-ink: #102c39;
+  --color-muted: #47636d;
+  --color-accent: #086b61;
+  --color-line: #d2e2e3;
+}
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink antialiased;
+  }
+
+  :focus-visible {
+    outline: 3px solid #16877c;
+    outline-offset: 3px;
+  }
+
+  main:focus {
+    outline: none;
+  }
+}
+
+@layer components {
+  .container-shell {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-8;
+  }
+
+  .site-header {
+    @apply flex flex-wrap items-center justify-between gap-x-8 gap-y-2 py-3;
+  }
+
+  .brand {
+    @apply inline-flex items-center gap-2.5 text-xl font-bold tracking-tight;
+  }
+
+  .brand-mark {
+    @apply grid size-9 place-items-center rounded-xl bg-accent text-white;
+  }
+
+  .site-nav {
+    @apply flex flex-wrap items-center gap-1 text-sm font-semibold text-muted sm:gap-2;
+  }
+
+  .site-nav a {
+    @apply inline-flex min-h-11 items-center rounded-lg px-2.5 hover:bg-canvas sm:px-3.5;
+  }
+
+  .site-nav a[aria-current="page"] {
+    @apply bg-teal-50 text-accent;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-10 focus:rounded-lg focus:bg-white focus:p-3;
+  }
+
+  .hero {
+    color: #f1fafb;
+    background:
+      radial-gradient(ellipse at 84% 0%, #125050, transparent 60%), #102d3b;
+  }
+
+  .hero-inner {
+    @apply pt-10 pb-16 sm:pt-15 sm:pb-20;
+  }
+
+  .hero h1 {
+    @apply mt-4 text-4xl font-semibold tracking-tight sm:text-6xl;
+  }
+
+  .hero p {
+    @apply mt-4 max-w-xl text-base text-slate-200 sm:text-lg;
+  }
+
+  .planner-grid {
+    @apply relative -mt-7 grid gap-5 pb-12 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)];
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-7;
+  }
+
+  .page-section {
+    @apply py-9 sm:py-12;
+  }
+
+  .page-title {
+    @apply text-3xl font-semibold tracking-tight sm:text-4xl;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  .action {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-wait disabled:opacity-65;
+  }
+
+  .action--primary {
+    @apply bg-accent text-white hover:bg-teal-900;
+  }
+
+  .action--secondary {
+    @apply border border-line bg-white text-ink hover:bg-canvas;
+  }
+
+  .action--quiet {
+    @apply text-accent hover:bg-teal-50;
+  }
+}

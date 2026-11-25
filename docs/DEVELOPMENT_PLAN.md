@@ -13,9 +13,9 @@
 
 ## Phase 2 — Frontend foundation
 
-- Build the design system, shared layout, navigation, and routes for Planner, Results, Saved Trips, and About.
-- Add reusable form controls, origin and destination inputs, waypoints, date and time inputs, responsive layouts, and loading and error states.
-- Use clearly labeled mock data and add initial component tests.
+- [x] Build the design system, shared layout, navigation, and routes for Planner, Results, Saved Trips, and About.
+- [ ] Add reusable form controls, origin and destination inputs, waypoints, date and time inputs, responsive layouts, and loading and error states.
+- [ ] Add clearly labeled mock results and initial component tests.
 
 ## Phase 3 — Google Maps integration
 
