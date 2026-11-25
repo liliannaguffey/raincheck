@@ -2,11 +2,11 @@
 
 RainCheck is a road-trip weather planner in development. It will estimate when drivers reach points along a route and match those arrival times to local forecasts.
 
-Phase 1 provides a starter page and a REST health endpoint. See the [development plan](docs/DEVELOPMENT_PLAN.md) for the trip planner, map, weather, recommendations, and saved trips roadmap.
+The trip planner accepts a route, optional stops, and a departure date and time. Preview results use a fixed sample weather timeline and device-local times. The [development plan](docs/DEVELOPMENT_PLAN.md) tracks live routing, forecasts, departure recommendations, and trip persistence.
 
 ## Local development
 
-Use Node.js 24 with npm. From the repository root, install dependencies with `npm ci`. Phase 1 needs no API keys or database.
+Use Node.js 24 with npm. From the repository root, install dependencies with `npm ci`. The sample planner and API health check need no API keys or database.
 
 Start the API and client in separate terminals.
 
@@ -31,7 +31,7 @@ npm run build
 npm test
 ```
 
-To run the compiled API after building, use `npm run start -w @raincheck/server`. The static client build is in `client/dist`. Serve it from a host that forwards `/api` to Express.
+To run the compiled API after building, use `npm run start -w @raincheck/server`. The static client build is in `client/dist`. Serve it from a host that serves `index.html` for client routes and forwards `/api` to Express.
 
 ## Project structure
 

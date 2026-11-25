@@ -16,7 +16,11 @@
 - [x] Build the design system, shared layout, navigation, and routes for Planner, Results, Saved Trips, and About.
 - [x] Add reusable form controls, origin and destination inputs, waypoints, date and time inputs, responsive layouts, and loading and error states.
 - [x] Add clearly labeled mock results.
-- [ ] Add initial component tests and verify the phase.
+- [x] Add initial component tests and verify the phase.
+
+Verification covered required fields, duplicate endpoints, waypoint controls, focus, loading, failure and retry, request cancellation, navigation, editing, and UTC conversion across midnight. Five frontend tests and the backend health test passed. Lint, formatting, and both production builds passed. Chrome smoke checks passed at 320 px and 1440 px.
+
+The Saved Trips page explains the current availability of trip saving. The next phase adds Google Places autocomplete, driving routes, and an interactive map.
 
 The preview interprets departure input in the device’s time zone, stores it as UTC, and displays it in device time. Origin-local time selection belongs to the Maps integration. Sample weather is independent of the submitted locations and dates.
 
