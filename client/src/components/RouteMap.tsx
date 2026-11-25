@@ -1,5 +1,6 @@
 import type {
   RouteResponse,
+  RouteSample,
   RouteWeatherPoint,
   RouteWeatherSegment,
 } from "@raincheck/shared";
@@ -11,6 +12,7 @@ const debug = import.meta.env.VITE_ROUTE_DEBUG === "true";
 
 export function RouteMap({
   result,
+  debugSamples,
   weatherPoints,
   selectedWeather,
   onWeatherSelect,
@@ -18,6 +20,7 @@ export function RouteMap({
   highlightedSections,
 }: {
   result: RouteResponse;
+  debugSamples?: RouteSample[];
   weatherPoints?: RouteWeatherPoint[];
   selectedWeather?: string;
   onWeatherSelect?: (id: string) => void;
@@ -62,6 +65,11 @@ export function RouteMap({
   useEffect(() => {
     if (state === "ready") weatherLayer.current?.select(selectedWeather);
   }, [state, weatherPoints, selectedWeather]);
+
+  useEffect(() => {
+    if (state === "ready" && debugSamples)
+      weatherLayer.current?.setDebugSamples(debugSamples);
+  }, [state, debugSamples]);
 
   useEffect(() => {
     if (state === "ready") weatherLayer.current?.setSections(sections ?? []);

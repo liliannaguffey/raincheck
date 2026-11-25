@@ -1,11 +1,15 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import type {
+  DepartureCandidate,
+  DepartureResponse,
+  DepartureRecommendation,
   RouteRequest,
   RouteResponse,
   RouteSample,
   RouteWeatherResponse,
   RouteWeatherPoint,
+  RouteWeatherSegment,
 } from "@raincheck/shared";
 import {
   cleanup,
@@ -26,17 +30,23 @@ vi.mock("../components/RouteMap", () => ({
     onWeatherSelect,
     weatherPoints,
     highlightedSections,
+    sections,
   }: {
     selectedWeather?: string;
     onWeatherSelect?: (id: string) => void;
     weatherPoints?: RouteWeatherPoint[];
     highlightedSections?: ReadonlySet<string>;
+    sections?: RouteWeatherSegment[];
   }) => (
     <div
       role="region"
       aria-label="Interactive driving route map"
       data-selection={selectedWeather}
       data-markers={weatherPoints?.map(({ id }) => id).join(",")}
+      data-arrivals={weatherPoints
+        ?.map(({ arrivalUtc }) => arrivalUtc)
+        .join(",")}
+      data-severities={sections?.map(({ severity }) => severity).join(",")}
       data-highlighted={
         highlightedSections ? [...highlightedSections].join(",") : undefined
       }
@@ -136,8 +146,16 @@ function NextTrip() {
   return <button onClick={next}>Load another trip</button>;
 }
 
-function openResults(fetcher: typeof fetch) {
-  vi.stubGlobal("fetch", fetcher);
+function openResults(
+  fetcher: typeof fetch,
+  compare: typeof fetch = async () => Response.json(noImprovement),
+) {
+  vi.stubGlobal("fetch", (input: RequestInfo | URL, init?: RequestInit) =>
+    input === "/api/departures/recommendations"
+      ? compare(input, init)
+      : fetcher(input, init),
+  );
+
   render(
     <StrictMode>
       <MemoryRouter initialEntries={[{ pathname: "/results", state: planned }]}>
@@ -440,4 +458,222 @@ test("filters markers, advisories and timeline locally while preserving the whol
   ).toBeVisible();
   expect(map).toHaveAttribute("data-markers", "");
   expect(fetcher).toHaveBeenCalledOnce();
+});
+
+const baseline: DepartureCandidate = {
+  id: first.arrivalUtc,
+  departureUtc: first.arrivalUtc,
+  departureLocal: "2030-06-15T08:00",
+  originTimeZone: "America/New_York",
+  arrivalUtc: last.arrivalUtc,
+  arrivalLocal: "2030-06-15T12:30:00",
+  destinationTimeZone: "America/Chicago",
+  durationSeconds: last.elapsedSeconds,
+  offsetSeconds: 0,
+  score: 100,
+  coverageFraction: 1,
+  exposure: {
+    favorable: 0,
+    caution: 0,
+    hazardous: last.elapsedSeconds,
+    unknown: 0,
+  },
+  hazards: {
+    gust: { label: "Strong wind gusts", seconds: last.elapsedSeconds },
+  },
+  eligibility: "eligible",
+};
+const noImprovement: DepartureResponse = {
+  baseline,
+  evaluatedCount: 13,
+  recommendations: [],
+  status: "no-improvement",
+  minimumCoverage: 0.9,
+  resolutionSeconds: 10800,
+  horizonSeconds: 432000,
+};
+const alternative: DepartureRecommendation = {
+  ...baseline,
+  id: "alternative",
+  departureUtc: "2030-06-15T13:00:00Z",
+  departureLocal: "2030-06-15T09:00",
+  arrivalUtc: "2030-06-15T18:30:00Z",
+  arrivalLocal: "2030-06-15T13:30:00",
+  distinction: "best-overall",
+  offsetSeconds: 3600,
+  score: 0,
+  hazards: {},
+  exposure: {
+    favorable: last.elapsedSeconds,
+    caution: 0,
+    hazardous: 0,
+    unknown: 0,
+  },
+  improvement: {
+    scorePoints: 100,
+    hazardousSeconds: last.elapsedSeconds,
+    cautionSeconds: 0,
+    reducedHazards: [
+      {
+        label: "Strong wind gusts",
+        originalSeconds: last.elapsedSeconds,
+        candidateSeconds: 0,
+      },
+    ],
+    newHazards: [],
+  },
+  points: classifiedWeather.points.map((point) => ({
+    ...point,
+    arrivalUtc: new Date(Date.parse(point.arrivalUtc) + 3600000).toISOString(),
+    classification: {
+      severity: "favorable",
+      availability: "available",
+      completeness: "sufficient",
+      hazards: [],
+      explanation: "Clear forecast.",
+    },
+    ...(point.status === "available"
+      ? {
+          forecast: {
+            ...point.forecast,
+            condition: "Clear",
+            description: "clear skies",
+          },
+        }
+      : {}),
+  })),
+};
+const withRecommendation: DepartureResponse = {
+  ...noImprovement,
+  status: "available",
+  recommendations: [alternative],
+};
+
+test("previews, restores and applies an alternative without refetching the route or weather", async () => {
+  const forecast = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json(classifiedWeather));
+  const compare = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json(withRecommendation));
+  openResults(forecast, compare);
+  const user = userEvent.setup();
+  const panel = screen.getByRole("region", {
+    name: "Find a better time to leave",
+  });
+  const preview = await within(panel).findByRole("button", {
+    name: "Preview departure",
+  });
+  expect(
+    within(panel).getByText(/5 hr 30 min less hazardous exposure/),
+  ).toBeVisible();
+  expect(
+    within(panel).getByText(/100.0 exposure-score points lower/),
+  ).toBeVisible();
+  expect(JSON.parse(String(compare.mock.calls[0]?.[1]?.body))).toMatchObject({
+    departureUtc: first.arrivalUtc,
+    flexibility: { hours: 3, direction: "either" },
+  });
+  const map = screen.getByRole("region", {
+    name: "Interactive driving route map",
+  });
+  const timeline = screen.getByRole("region", { name: "Route weather" });
+
+  await user.click(preview);
+  expect(
+    within(panel).getByText("Previewing an alternative departure"),
+  ).toBeVisible();
+  expect(map).toHaveAttribute(
+    "data-arrivals",
+    "2030-06-15T13:00:00.000Z,2030-06-15T18:30:00.000Z",
+  );
+  expect(map).toHaveAttribute("data-severities", "favorable");
+  expect(within(timeline).getAllByText(/clear skies/)).toHaveLength(2);
+  expect(
+    screen.getByText(
+      "No supported hazards were identified in the available forecasts.",
+    ),
+  ).toBeVisible();
+
+  await user.click(
+    within(panel).getByRole("button", { name: "Return to original" }),
+  );
+  expect(map).toHaveAttribute("data-severities", "hazardous");
+  const advisories = screen.getByRole("region", {
+    name: "RainCheck weather advisories",
+  });
+  expect(
+    within(advisories).getByRole("heading", { name: "Strong wind gusts" }),
+  ).toBeVisible();
+
+  await user.click(preview);
+  await user.click(
+    within(panel).getByRole("button", { name: "Apply alternative" }),
+  );
+  expect(
+    within(panel).getByText("Alternative departure applied"),
+  ).toBeVisible();
+  expect(screen.getByText("Applied departure")).toBeVisible();
+  expect(map).toHaveAttribute("data-severities", "favorable");
+  expect(forecast).toHaveBeenCalledOnce();
+  expect(compare).toHaveBeenCalledOnce();
+});
+
+test("allows flexibility changes, handles no flexibility, and ignores a stale comparison", async () => {
+  const release: { response?: (value: Response) => void } = {};
+  const compare = vi
+    .fn<typeof fetch>()
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          release.response = resolve;
+        }),
+    )
+    .mockResolvedValueOnce(
+      Response.json({ ...noImprovement, status: "insufficient-coverage" }),
+    );
+  openResults(vi.fn().mockResolvedValue(Response.json(weather)), compare);
+  const user = userEvent.setup();
+  const panel = screen.getByRole("region", {
+    name: "Find a better time to leave",
+  });
+  const flexibility = within(panel).getByLabelText("Departure flexibility");
+  await waitFor(() => expect(compare).toHaveBeenCalledOnce());
+  expect(within(panel).getByText("Comparing departure times…")).toBeVisible();
+  await user.selectOptions(flexibility, "0");
+  expect(
+    within(panel).getByText("Departure flexibility is turned off."),
+  ).toBeVisible();
+  expect(
+    within(panel).getByRole("button", { name: "Compare departures" }),
+  ).toBeDisabled();
+  await user.selectOptions(flexibility, "1");
+  await user.selectOptions(
+    within(panel).getByLabelText("Departure direction"),
+    "later",
+  );
+  await user.click(
+    within(panel).getByRole("button", { name: "Compare departures" }),
+  );
+  expect(
+    await within(panel).findByText(/At least 90% classified driving time/),
+  ).toBeVisible();
+  expect(compare.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+  expect(
+    JSON.parse(String(compare.mock.calls[1]?.[1]?.body)).flexibility,
+  ).toEqual({ hours: 1, direction: "later" });
+  release.response?.(Response.json(withRecommendation));
+  expect(
+    within(panel).queryByRole("button", { name: "Preview departure" }),
+  ).not.toBeInTheDocument();
+});
+
+test("states when the original departure remains the recommendation", async () => {
+  openResults(vi.fn().mockResolvedValue(Response.json(weather)));
+  expect(
+    await screen.findByText(/No meaningful weather improvement/),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("heading", { name: "Original departure" }),
+  ).toBeVisible();
 });

@@ -193,10 +193,9 @@ test("submits selected places and a local departure, then displays and edits the
   expect(screen.getByText("Valdosta, GA")).toBeVisible();
   expect(screen.getByText("300.1 mi")).toBeVisible();
   expect(screen.getByText("5 hr 0 min")).toBeVisible();
-  expect(screen.getByText(/Jun 16, 2030.*4:30 AM/)).toHaveAttribute(
-    "datetime",
-    result.arrivalUtc,
-  );
+  for (const arrival of screen.getAllByText(/Jun 16, 2030.*4:30 AM/)) {
+    expect(arrival).toHaveAttribute("datetime", result.arrivalUtc);
+  }
   await user.click(screen.getByRole("link", { name: "Edit trip" }));
   expect(screen.getByLabelText("Stop 1 (optional)")).toHaveValue(stop.address);
   expect(screen.getByLabelText("Departure date")).toHaveValue("2030-06-15");

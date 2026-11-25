@@ -1,4 +1,6 @@
 import type {
+  DepartureRecommendation,
+  RouteWeatherResponse,
   HazardCategory,
   RouteHazardSection,
   RouteRequest,
@@ -13,6 +15,8 @@ import {
 } from "@raincheck/shared/route-weather";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation } from "react-router";
+import { DepartureRecommendations } from "../components/DepartureRecommendations";
+import { useDepartures } from "../departures/useDepartures";
 import { WeatherFilters } from "../components/WeatherFilters";
 import { WeatherTimeline } from "../components/WeatherTimeline";
 import { useRouteWeather } from "../weather/useRouteWeather";
@@ -46,6 +50,11 @@ export function Results() {
   return <TripResults key={key} {...planned} />;
 }
 
+interface DepartureSnapshot {
+  candidate: DepartureRecommendation;
+  weather: RouteWeatherResponse;
+}
+
 function TripResults({
   trip,
   result,
@@ -53,19 +62,36 @@ function TripResults({
   trip: RouteRequest;
   result: RouteResponse;
 }) {
-  const weather = useRouteWeather(result.samples);
+  const originalWeather = useRouteWeather(result.samples);
+  const comparison = useDepartures(result, !originalWeather.pending);
+  const [applied, setApplied] = useState<DepartureSnapshot>();
+  const [preview, setPreview] = useState<DepartureSnapshot>();
+  const active = preview ?? applied;
+  const samples = active?.candidate.points ?? result.samples;
+  const weather = active
+    ? {
+        ...originalWeather,
+        data: active.weather,
+        pending: false,
+        error: undefined,
+      }
+    : originalWeather;
+  const displayTrip = useMemo(
+    () => ({ ...result, samples }),
+    [result, samples],
+  );
   const points = weather.data?.points;
   const sections = useMemo(
-    () => segmentRouteWeather(result, points ?? []),
-    [result, points],
+    () => segmentRouteWeather(displayTrip, points ?? []),
+    [displayTrip, points],
   );
   const summary = useMemo(
     () => summarizeRouteWeather(sections, points ?? []),
     [sections, points],
   );
   const advisories = useMemo(
-    () => groupRouteHazards(result.samples, points ?? [], sections),
-    [result.samples, points, sections],
+    () => groupRouteHazards(samples, points ?? [], sections),
+    [samples, points, sections],
   );
   const [selectedWeather, setSelectedWeather] = useState<string>();
   const [selectedAdvisory, setSelectedAdvisory] = useState<string>();
@@ -119,11 +145,39 @@ function TripResults({
       selectedAdvisory === advisory.id ? undefined : advisory.start.id,
     );
   }
-  const { route, departureUtc, arrivalUtc, samples } = result;
+  const departureUtc = active?.candidate.departureUtc ?? result.departureUtc;
+  const arrivalUtc = active?.candidate.arrivalUtc ?? result.arrivalUtc;
+  const { route } = result;
+  function clearSelection() {
+    setSelectedWeather(undefined);
+    setSelectedAdvisory(undefined);
+  }
+  function previewDeparture(candidate: DepartureRecommendation) {
+    if (!comparison.response) return;
+    const { resolutionSeconds, horizonSeconds } = comparison.response;
+    setPreview({
+      candidate,
+      weather: {
+        provider: "OpenWeather",
+        resolutionSeconds,
+        horizonSeconds,
+        points: candidate.points,
+      },
+    });
+    clearSelection();
+  }
+  function restoreDeparture() {
+    setPreview(undefined);
+    setApplied(undefined);
+    clearSelection();
+  }
+  const editableTrip = applied
+    ? { ...trip, departureLocal: applied.candidate.departureLocal }
+    : trip;
 
   return (
     <section className="container-shell page-section">
-      <ActionLink tone="quiet" to="/" state={{ trip }}>
+      <ActionLink tone="quiet" to="/" state={{ trip: editableTrip }}>
         <ArrowLeft size={18} aria-hidden="true" /> Edit trip
       </ActionLink>
       <h1 className="page-title mt-3">Trip results</h1>
@@ -182,6 +236,11 @@ function TripResults({
               </dd>
             </div>
           </dl>
+          {active && (
+            <p className="mt-3 text-sm font-semibold text-accent">
+              {preview ? "Preview departure" : "Applied departure"}
+            </p>
+          )}
           <p className="mt-4 text-sm text-muted">
             Estimates exclude time spent at stops.
           </p>
@@ -193,6 +252,7 @@ function TripResults({
           <h2 className="section-title">Driving route</h2>
           <RouteMap
             result={result}
+            debugSamples={samples}
             sections={sections}
             highlightedSections={highlightedSections}
             weatherPoints={visiblePoints}
@@ -214,6 +274,19 @@ function TripResults({
           )}
         </Card>
       </div>
+      <DepartureRecommendations
+        route={result}
+        comparison={comparison}
+        weatherPending={originalWeather.pending}
+        preview={preview?.candidate}
+        applied={applied?.candidate}
+        onPreview={previewDeparture}
+        onApply={() => {
+          if (preview) setApplied(preview);
+          setPreview(undefined);
+        }}
+        onRestore={restoreDeparture}
+      />
       {points && (
         <>
           <RouteWeatherSummary summary={summary} advisories={advisories} />

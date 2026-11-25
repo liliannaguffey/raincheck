@@ -77,7 +77,7 @@ Phase 5 weather severity is signed off. All 108 automated tests passed, includin
 
 - [x] Generate bounded departure candidates and recalculate sample arrivals in UTC.
 - [x] Score and rank comparable departure candidates and reuse cached forecasts.
-- [ ] Add configuration, comparisons, previews, and apply and restore controls.
+- [x] Add flexibility controls, exposure comparisons, and preview, apply, and original-trip restoration.
 - [ ] Verify the implementation with fixtures and a representative live trip.
 
 ## Phase 7 — PostgreSQL and saved trips

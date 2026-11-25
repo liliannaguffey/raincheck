@@ -95,6 +95,16 @@ export async function drawRoute(
     }
   }
   const info = debug ? new InfoWindow() : undefined;
+  let debugSamples = new globalThis.Map(
+    samples.map((sample) => [sample.id, sample]),
+  );
+  function setDebugSamples(next: RouteSample[]) {
+    if (!info) return;
+    debugSamples = new globalThis.Map(
+      next.map((sample) => [sample.id, sample]),
+    );
+    info.close();
+  }
   const pins: google.maps.marker.AdvancedMarkerElement[] = [];
   let stop = 0;
 
@@ -141,7 +151,9 @@ export async function drawRoute(
         marker.addEventListener(
           "gmp-click",
           () => {
-            info.setContent(sampleDetails(sample));
+            info.setContent(
+              sampleDetails(debugSamples.get(sample.id) ?? sample),
+            );
             info.open({ map, anchor: marker });
           },
           { signal },
@@ -149,7 +161,7 @@ export async function drawRoute(
       }
     }
     map.fitBounds(bounds, 36);
-    return { ...weather, setSections, highlightSections };
+    return { ...weather, setSections, highlightSections, setDebugSamples };
   } catch (error) {
     dispose();
     throw error;
