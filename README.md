@@ -48,6 +48,12 @@ See [route sampling](docs/ROUTE_SAMPLING.md) for arrival calculations, the dista
 
 `POST /api/weather/route` takes route samples and returns normalized forecasts matched to UTC arrival times. It reports partial and unavailable coverage while the driving route stays visible. Forecast requests share exact-coordinate series and use bounded concurrency, a rolling call budget, and timeouts. [Weather integration guide](docs/WEATHER_INTEGRATION.md)
 
+## Weather severity and advisories
+
+Trip Results colors road sections green for favorable forecasts, amber for caution, red for potentially hazardous weather, and gray when the forecast evidence is insufficient. Markers and the timeline show the individual hazards. The summary reports distance-weighted coverage and time-weighted exposure. RainCheck groups consecutive hazards into advisories and lets you focus the map and timeline by weather category while keeping the whole-route assessment visible.
+
+The classifications use configurable forecast heuristics. Conditions between samples and actual road surfaces may differ. Check official weather advisories and road reports before traveling. Terrain assessment is pending Elevation API configuration and budget approval. [Weather severity and thresholds](docs/WEATHER_SEVERITY.md)
+
 ## Checks
 
 ```sh

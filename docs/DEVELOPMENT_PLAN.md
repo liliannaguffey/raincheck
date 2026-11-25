@@ -66,7 +66,11 @@ Phase 4 is signed off. The automated suite passed 14 frontend and 62 backend tes
 - [x] Render severity-colored route sections, an accessible legend, and marker classifications.
 - [x] Add grouped advisories and weighted weather summaries.
 - [x] Add presentation-only hazard filters and timeline severity indicators.
-- [ ] Run automated and live verification.
+- [x] Pass full automated checks, responsive browser smoke checks, and a live representative trip.
+- [x] Document thresholds, road segmentation, exposure, and filter behavior in the [weather severity guide](WEATHER_SEVERITY.md).
+
+Phase 5 weather severity is signed off. All 108 automated tests passed, including 17 frontend and 91 backend tests. ESLint, Prettier, TypeScript, and both production builds passed. Mocked Chrome checks passed at 320 px and 1440 px. A single live 331-mile Gainesville-to-Atlanta route verified 11 matched forecasts, 10 colored spans, favorable and caution classifications, 100% classified distance coverage, and six sample-level hazards. The map, timeline, advisories, and weighted summary agreed with the live response. Changing filters made no extra route, map-load, or weather requests. Repeating one point reused its cached forecast. Hazardous and unavailable cases were covered with deterministic fixtures.
+
 - Terrain assessment is pending confirmed Elevation API configuration and budget approval.
 
 ## Phase 6 — Departure time optimization
