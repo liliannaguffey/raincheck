@@ -5,6 +5,7 @@ import type {
   RouteResponse,
   RouteSample,
   RouteWeatherResponse,
+  RouteWeatherPoint,
 } from "@raincheck/shared";
 import {
   cleanup,
@@ -23,14 +24,22 @@ vi.mock("../components/RouteMap", () => ({
   RouteMap: ({
     selectedWeather,
     onWeatherSelect,
+    weatherPoints,
+    highlightedSections,
   }: {
     selectedWeather?: string;
     onWeatherSelect?: (id: string) => void;
+    weatherPoints?: RouteWeatherPoint[];
+    highlightedSections?: ReadonlySet<string>;
   }) => (
     <div
       role="region"
       aria-label="Interactive driving route map"
       data-selection={selectedWeather}
+      data-markers={weatherPoints?.map(({ id }) => id).join(",")}
+      data-highlighted={
+        highlightedSections ? [...highlightedSections].join(",") : undefined
+      }
     >
       <button onClick={() => onWeatherSelect?.("finish")}>
         Select weather marker
@@ -367,5 +376,68 @@ test("shows the accessible severity legend, route exposure and linked weather ad
   expect(
     screen.getByRole("region", { name: "Interactive driving route map" }),
   ).toHaveAttribute("data-selection", "finish");
+  expect(fetcher).toHaveBeenCalledOnce();
+});
+
+test("filters markers, advisories and timeline locally while preserving the whole-route assessment", async () => {
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json(classifiedWeather));
+  openResults(fetcher);
+  const user = userEvent.setup();
+  const filters = await screen.findByRole("group", { name: "Weather filters" });
+  const map = screen.getByRole("region", {
+    name: "Interactive driving route map",
+  });
+  const summary = screen.getByRole("region", { name: "Weather summary" });
+  const advisories = screen.getByRole("region", {
+    name: "RainCheck weather advisories",
+  });
+  const timeline = screen.getByRole("region", { name: "Route weather" });
+  const rain = within(filters).getByRole("button", { name: "Rain" });
+  const wind = within(filters).getByRole("button", { name: "Strong winds" });
+  const showAll = within(filters).getByRole("button", { name: "Show all" });
+
+  rain.focus();
+  await user.keyboard(" ");
+  expect(rain).toHaveAttribute("aria-pressed", "true");
+  expect(map).toHaveAttribute("data-markers", "start");
+  expect(map).toHaveAttribute("data-highlighted", "weather-section-1");
+  expect(
+    within(timeline).getByText(
+      "Showing 1 of 2 weather points with selected hazards.",
+    ),
+  ).toBeVisible();
+  expect(
+    within(advisories).queryByRole("heading", { name: "Strong wind gusts" }),
+  ).not.toBeInTheDocument();
+  expect(
+    within(summary).getByText("Potentially hazardous", { exact: true }),
+  ).toBeVisible();
+  expect(
+    within(summary).getByText(/Identified hazards include.*Strong wind gusts/),
+  ).toBeVisible();
+
+  await user.click(wind);
+  expect(map).toHaveAttribute("data-markers", "start,finish");
+  await user.click(rain);
+  expect(map).toHaveAttribute("data-markers", "finish");
+  await user.click(showAll);
+  expect(showAll).toHaveAttribute("aria-pressed", "true");
+  expect(wind).toHaveAttribute("aria-pressed", "false");
+  await user.click(
+    within(filters).getByRole("button", { name: "Thunderstorms" }),
+  );
+  expect(
+    within(timeline).getByText(
+      "No timeline points match the selected categories.",
+    ),
+  ).toBeVisible();
+  expect(
+    within(advisories).getByText(
+      "No advisories match the selected categories.",
+    ),
+  ).toBeVisible();
+  expect(map).toHaveAttribute("data-markers", "");
   expect(fetcher).toHaveBeenCalledOnce();
 });

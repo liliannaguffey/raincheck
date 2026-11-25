@@ -1,3 +1,6 @@
+import type { RouteWeatherPoint } from "@raincheck/shared";
+import { assessment } from "@raincheck/shared/route-weather";
+import { severityPresentation } from "../weather/severityPresentation";
 import { CloudSun } from "lucide-react";
 import { formatArrival, formatMiles } from "../trips/routes";
 import {
@@ -26,12 +29,17 @@ export function WeatherTimeline({
   weather,
   selected,
   onSelect,
+  visiblePoints,
+  filtered = false,
 }: {
   weather: ReturnType<typeof useRouteWeather>;
   selected?: string;
   onSelect?: (id: string) => void;
+  visiblePoints?: RouteWeatherPoint[];
+  filtered?: boolean;
 }) {
   const points = weather.data?.points ?? [];
+  const displayed = visiblePoints ?? points;
   const available = points.filter(
     ({ status }) => status === "available",
   ).length;
@@ -113,12 +121,21 @@ export function WeatherTimeline({
                 <p>No matching forecasts are available for this trip.</p>
               )}
             </div>
+            {filtered && (
+              <p className="mt-3 text-sm text-muted" role="status">
+                {displayed.length
+                  ? `Showing ${displayed.length} of ${points.length} weather points with selected hazards.`
+                  : "No timeline points match the selected categories."}
+              </p>
+            )}
             <ol className="mt-4 divide-y divide-line border-t border-line">
-              {points.map((point) => {
+              {displayed.map((point) => {
                 const forecast =
                   point.status === "available" ? point.forecast : undefined;
                 const { Icon } = forecastIcon(forecast);
                 const name = pointName(point);
+                const condition = assessment(point);
+                const severity = severityPresentation[condition.severity];
                 return (
                   <li
                     key={point.id}
@@ -145,6 +162,22 @@ export function WeatherTimeline({
                           {forecast?.temperatureC !== undefined &&
                             ` · ${formatTemperature(forecast.temperatureC)}`}
                         </p>
+                        <p
+                          className="mt-1 text-sm font-semibold"
+                          style={{ color: severity.color }}
+                        >
+                          {severity.label}
+                        </p>
+                        {condition.hazards.length > 0 && (
+                          <ul className="mt-1 space-y-1 text-sm text-muted">
+                            {condition.hazards.map((hazard) => (
+                              <li key={hazard.id}>
+                                <strong>{hazard.label}.</strong>{" "}
+                                {hazard.explanation}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                         {forecast && (
                           <div className="mt-1 space-y-1 text-sm text-muted">
                             <p>

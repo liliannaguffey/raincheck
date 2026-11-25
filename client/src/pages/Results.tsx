@@ -1,16 +1,19 @@
 import type {
+  HazardCategory,
   RouteHazardSection,
   RouteRequest,
   RouteResponse,
 } from "@raincheck/shared";
 import { ArrowLeft, MapPin } from "lucide-react";
 import {
+  assessment,
   groupRouteHazards,
   segmentRouteWeather,
   summarizeRouteWeather,
 } from "@raincheck/shared/route-weather";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation } from "react-router";
+import { WeatherFilters } from "../components/WeatherFilters";
 import { WeatherTimeline } from "../components/WeatherTimeline";
 import { useRouteWeather } from "../weather/useRouteWeather";
 import {
@@ -66,17 +69,55 @@ function TripResults({
   );
   const [selectedWeather, setSelectedWeather] = useState<string>();
   const [selectedAdvisory, setSelectedAdvisory] = useState<string>();
+  const [filters, setFilters] = useState<Set<HazardCategory>>(() => new Set());
+  const visiblePoints = useMemo(
+    () =>
+      !filters.size
+        ? points
+        : points?.filter((point) =>
+            assessment(point).hazards.some(({ category }) =>
+              filters.has(category),
+            ),
+          ),
+    [filters, points],
+  );
+  const visibleAdvisories = !filters.size
+    ? advisories
+    : advisories.filter(({ hazard }) => filters.has(hazard.category));
   const highlightedSections = useMemo(() => {
     const advisory = advisories.find(({ id }) => id === selectedAdvisory);
-    return advisory ? new Set(advisory.segmentIds) : undefined;
-  }, [advisories, selectedAdvisory]);
+    if (advisory) return new Set(advisory.segmentIds);
+    if (!filters.size) return;
+    return new Set(
+      sections
+        .filter(({ hazards }) =>
+          hazards.some(({ category }) => filters.has(category)),
+        )
+        .map(({ id }) => id),
+    );
+  }, [advisories, filters, sections, selectedAdvisory]);
+  function updateFilters(category?: HazardCategory) {
+    setFilters((previous) => {
+      if (!category) return new Set();
+      const next = new Set(previous);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
+    setSelectedWeather(undefined);
+    setSelectedAdvisory(undefined);
+  }
   const selectWeather = useCallback((id: string) => {
     setSelectedWeather(id);
     setSelectedAdvisory(undefined);
   }, []);
   function selectAdvisory(advisory: RouteHazardSection) {
-    setSelectedAdvisory(advisory.id);
-    setSelectedWeather(advisory.start.id);
+    setSelectedAdvisory(
+      selectedAdvisory === advisory.id ? undefined : advisory.id,
+    );
+    setSelectedWeather(
+      selectedAdvisory === advisory.id ? undefined : advisory.start.id,
+    );
   }
   const { route, departureUtc, arrivalUtc, samples } = result;
 
@@ -154,11 +195,18 @@ function TripResults({
             result={result}
             sections={sections}
             highlightedSections={highlightedSections}
-            weatherPoints={weather.data?.points}
+            weatherPoints={visiblePoints}
             selectedWeather={selectedWeather}
             onWeatherSelect={selectWeather}
           />
           <SeverityLegend />
+          {points && (
+            <WeatherFilters
+              selected={filters}
+              onToggle={updateFilters}
+              onReset={() => updateFilters()}
+            />
+          )}
           {result.sampling === "distance-fallback" && (
             <p className="mt-3 text-sm text-muted">
               Some points along this route use distance-based timing estimates.
@@ -170,7 +218,8 @@ function TripResults({
         <>
           <RouteWeatherSummary summary={summary} advisories={advisories} />
           <HazardAdvisories
-            advisories={advisories}
+            advisories={visibleAdvisories}
+            filtered={filters.size > 0}
             selected={selectedAdvisory}
             onSelect={selectAdvisory}
           />
@@ -178,6 +227,8 @@ function TripResults({
       )}
       <WeatherTimeline
         weather={weather}
+        visiblePoints={visiblePoints}
+        filtered={filters.size > 0}
         selected={selectedWeather}
         onSelect={selectWeather}
       />
