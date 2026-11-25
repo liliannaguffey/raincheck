@@ -1,7 +1,10 @@
 import type { HealthResponse } from "@raincheck/shared";
 import express from "express";
 
-export function createApp() {
+import { routeRouter } from "./routes/http.ts";
+import { createRouteService } from "./routes/service.ts";
+
+export function createApp(calculateRoute = createRouteService()) {
   const app = express();
 
   app.disable("x-powered-by");
@@ -9,5 +12,6 @@ export function createApp() {
     response.json({ status: "ok" });
   });
 
+  app.use("/api/routes", routeRouter(calculateRoute));
   return app;
 }
