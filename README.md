@@ -1,6 +1,6 @@
 # RainCheck
 
-RainCheck is a road-trip weather planner in development. It will estimate when drivers reach points along a route and match those arrival times to local forecasts.
+RainCheck is a road-trip planner that estimates when drivers reach points along a route and matches those arrival times to local forecasts.
 
 The trip planner uses Google Maps to calculate driving routes and estimated arrivals from a selected origin, destination, optional stops, and departure time. The [development plan](docs/DEVELOPMENT_PLAN.md) tracks forecast integration, departure recommendations, and trip persistence.
 
@@ -39,6 +39,14 @@ The automated checks stub provider calls and incur no Google API charges.
 Autocomplete waits for three characters and a short pause, with a session token per input session. A completed route uses one Routes request, an origin Time Zone lookup, and up to one lookup per distinct named stop or destination. Configure billing budgets and API quotas in Google Cloud. Review [Google’s key restrictions](https://developers.google.com/maps/api-security-best-practices) and [Maps JavaScript policies](https://developers.google.com/maps/documentation/javascript/policies) before a public deployment, including the need for public terms and a privacy policy. Keep the prototype API local until you have controls on public access and usage.
 
 See [route sampling](docs/ROUTE_SAMPLING.md) for arrival calculations, the distance fallback, and the opt-in sample visualization.
+
+## Configure OpenWeather
+
+1. Create a standard Free plan account and get a key from [My API Keys](https://home.openweathermap.org/api_keys). RainCheck uses the [5 Day / 3 Hour Forecast](https://openweathermap.org/api/forecast5), which is included in that plan. Separate metered One Call products can offer finer forecast intervals. [OpenWeather pricing](https://openweathermap.org/price)
+2. Add `OPENWEATHER_API_KEY` to the ignored `server/.env`, alongside the existing Google Maps server configuration. Restart the API. Optionally set `WEATHER_CACHE_TTL_SECONDS` to configure the in-memory cache lifetime. The default is 600 seconds and 0 disables storage.
+3. Plan one Gainesville-to-Atlanta trip departing tomorrow. Check that the route appears while weather loads, compare arrival and forecast times in the timeline, and select a weather marker. The displayed forecast uses OpenWeather’s three-hour time slots. Selecting a marker uses the loaded response.
+
+`POST /api/weather/route` takes route samples and returns normalized forecasts matched to UTC arrival times. It reports partial and unavailable coverage while the driving route stays visible. Forecast requests share exact-coordinate series and use bounded concurrency, a rolling call budget, and timeouts. [Weather integration guide](docs/WEATHER_INTEGRATION.md)
 
 ## Checks
 
