@@ -1,0 +1,11 @@
+{
+  "name": "raincheck",
+  "private": true,
+  "engines": { "node": "^22.12.0 || >=24.0.0" },
+  "workspaces": ["client"],
+  "scripts": {
+    "dev:client": "npm run dev -w @raincheck/client",
+    "build": "npm run build --workspaces"
+  },
+  "devDependencies": { "typescript": "^5.9.3" }
+}

@@ -4,7 +4,7 @@
 
 - [x] Inspect the local folder and designated GitHub repository.
 - [x] Initialize the empty repository on develop and configure origin.
-- [ ] Set up React, TypeScript, Vite, and Tailwind in client.
+- [x] Set up React, TypeScript, Vite, and Tailwind in client.
 - [ ] Set up Express and TypeScript in server, with a typed health endpoint.
 - [ ] Establish shared contracts, npm workspaces, and startup scripts.
 - [ ] Add ESLint, Prettier, environment templates, and initial README.
