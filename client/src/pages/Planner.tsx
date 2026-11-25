@@ -1,7 +1,12 @@
 import { CloudSun, MapPin, Route } from "lucide-react";
+import { useLocation } from "react-router";
+import { TripForm } from "../components/TripForm";
+import type { TripPreviewRequest } from "../trips/preview";
 import { Card } from "../components/ui";
 
 export function Planner() {
+  const { state } = useLocation();
+  const initialTrip = (state as { trip?: TripPreviewRequest } | null)?.trip;
   return (
     <>
       <section className="hero">
@@ -20,13 +25,14 @@ export function Planner() {
         <Card>
           <MapPin className="text-accent" aria-hidden="true" />
           <h2 className="section-title mt-3">Plan your trip</h2>
+          <TripForm initialTrip={initialTrip} />
         </Card>
         <Card className="self-start">
           <CloudSun className="text-accent" aria-hidden="true" />
           <h2 className="section-title mt-3">Weather along the way</h2>
           <p className="mt-2 text-muted">
-            RainCheck pairs estimated arrival times with forecasts at points
-            along your drive.
+            Live route forecasts will match estimated arrival times to forecasts
+            along your drive. This preview uses sample weather.
           </p>
         </Card>
       </div>

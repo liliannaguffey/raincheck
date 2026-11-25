@@ -94,6 +94,26 @@
     @apply text-xl font-semibold tracking-tight;
   }
 
+  .field {
+    @apply grid min-w-0 gap-1.5 text-sm;
+  }
+
+  .field label {
+    @apply font-semibold;
+  }
+
+  .field input {
+    @apply min-h-11 w-full min-w-0 rounded-xl border border-[#829a9f] bg-white px-3 py-2 text-base placeholder:text-muted;
+  }
+
+  .field input[aria-invalid="true"] {
+    @apply border-red-700;
+  }
+
+  .field-error {
+    @apply text-sm font-medium text-red-800;
+  }
+
   .action {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-wait disabled:opacity-65;
   }

@@ -14,8 +14,11 @@
 ## Phase 2 — Frontend foundation
 
 - [x] Build the design system, shared layout, navigation, and routes for Planner, Results, Saved Trips, and About.
-- [ ] Add reusable form controls, origin and destination inputs, waypoints, date and time inputs, responsive layouts, and loading and error states.
-- [ ] Add clearly labeled mock results and initial component tests.
+- [x] Add reusable form controls, origin and destination inputs, waypoints, date and time inputs, responsive layouts, and loading and error states.
+- [x] Add clearly labeled mock results.
+- [ ] Add initial component tests and verify the phase.
+
+The preview interprets departure input in the device’s time zone, stores it as UTC, and displays it in device time. Origin-local time selection belongs to the Maps integration. Sample weather is independent of the submitted locations and dates.
 
 ## Phase 3 — Google Maps integration
 
