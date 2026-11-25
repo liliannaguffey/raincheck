@@ -144,3 +144,13 @@
     @apply ring-2 ring-teal-600 ring-offset-2;
   }
 }
+
+@layer components {
+  .weather-map-pin {
+    @apply relative;
+  }
+
+  .weather-pin-severity {
+    @apply absolute -top-1 -right-1 grid size-4 place-items-center rounded-full border border-white text-[9px] font-bold text-white;
+  }
+}

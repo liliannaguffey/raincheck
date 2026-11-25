@@ -1,9 +1,11 @@
 import type { RouteRequest, RouteResponse } from "@raincheck/shared";
 import { ArrowLeft, MapPin } from "lucide-react";
-import { useState } from "react";
+import { segmentRouteWeather } from "@raincheck/shared/route-weather";
+import { useMemo, useState } from "react";
 import { useLocation } from "react-router";
 import { WeatherTimeline } from "../components/WeatherTimeline";
 import { useRouteWeather } from "../weather/useRouteWeather";
+import { SeverityLegend } from "../components/SeverityLegend";
 import { RouteMap } from "../components/RouteMap";
 import { ActionLink, Card } from "../components/ui";
 import { formatArrival, formatDuration, formatMiles } from "../trips/routes";
@@ -37,6 +39,11 @@ function TripResults({
   result: RouteResponse;
 }) {
   const weather = useRouteWeather(result.samples);
+  const points = weather.data?.points;
+  const sections = useMemo(
+    () => segmentRouteWeather(result, points ?? []),
+    [result, points],
+  );
   const [selectedWeather, setSelectedWeather] = useState<string>();
   const { route, departureUtc, arrivalUtc, samples } = result;
 
@@ -112,10 +119,12 @@ function TripResults({
           <h2 className="section-title">Driving route</h2>
           <RouteMap
             result={result}
+            sections={sections}
             weatherPoints={weather.data?.points}
             selectedWeather={selectedWeather}
             onWeatherSelect={setSelectedWeather}
           />
+          <SeverityLegend />
           {result.sampling === "distance-fallback" && (
             <p className="mt-3 text-sm text-muted">
               Some points along this route use distance-based timing estimates.

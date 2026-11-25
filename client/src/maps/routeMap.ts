@@ -1,5 +1,10 @@
-import type { RouteResponse, RouteSample } from "@raincheck/shared";
+import type {
+  RouteResponse,
+  RouteSample,
+  RouteWeatherSegment,
+} from "@raincheck/shared";
 import { formatArrival, formatDuration, formatMiles } from "../trips/routes";
+import { severityPresentation } from "../weather/severityPresentation";
 import { mapsLibrary } from "./google";
 import { createWeatherLayer } from "./weatherLayer";
 
@@ -50,13 +55,45 @@ export async function drawRoute(
   const path = new Polyline({
     map,
     path: route.coordinates,
-    strokeColor: "#2563eb",
+    strokeColor: severityPresentation.unknown.color,
     strokeOpacity: 0.95,
     strokeWeight: 5,
   });
   for (const point of route.coordinates) bounds.extend(point);
 
   const weather = createWeatherLayer(map, AdvancedMarkerElement, InfoWindow);
+  const overlays = new globalThis.Map<string, google.maps.Polyline>();
+  function clearSections() {
+    for (const overlay of overlays.values()) overlay.setMap(null);
+    overlays.clear();
+  }
+  function setSections(sections: RouteWeatherSegment[]) {
+    clearSections();
+    for (const section of sections) {
+      if (section.coordinates.length < 2) continue;
+      overlays.set(
+        section.id,
+        new Polyline({
+          map,
+          path: section.coordinates,
+          strokeColor: severityPresentation[section.severity].color,
+          strokeOpacity: 0.95,
+          strokeWeight: 5,
+        }),
+      );
+    }
+    path.setMap(overlays.size ? null : map);
+  }
+  function highlightSections(ids?: ReadonlySet<string>) {
+    for (const [id, overlay] of overlays) {
+      const focused = ids?.has(id);
+      overlay.setOptions({
+        strokeOpacity: !ids || focused ? 0.95 : 0.32,
+        strokeWeight: focused ? 8 : 5,
+        zIndex: focused ? 2 : 1,
+      });
+    }
+  }
   const info = debug ? new InfoWindow() : undefined;
   const pins: google.maps.marker.AdvancedMarkerElement[] = [];
   let stop = 0;
@@ -64,6 +101,7 @@ export async function drawRoute(
   function dispose() {
     signal.removeEventListener("abort", dispose);
     weather.clear();
+    clearSections();
     info?.close();
     for (const marker of pins) marker.map = null;
     path.setMap(null);
@@ -111,7 +149,7 @@ export async function drawRoute(
       }
     }
     map.fitBounds(bounds, 36);
-    return weather;
+    return { ...weather, setSections, highlightSections };
   } catch (error) {
     dispose();
     throw error;

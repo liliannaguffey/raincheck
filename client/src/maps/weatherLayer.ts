@@ -1,4 +1,9 @@
 import type { RouteWeatherPoint } from "@raincheck/shared";
+import { assessment } from "@raincheck/shared/route-weather";
+import {
+  hazardMeasurement,
+  severityPresentation,
+} from "../weather/severityPresentation";
 import { formatArrival, formatMiles } from "../trips/routes";
 import {
   describeWeather,
@@ -41,6 +46,15 @@ function details(point: RouteWeatherPoint) {
       line(`Visibility: ${formatMiles(f.visibilityMeters)}`);
     if (f.humidityPercent !== undefined)
       line(`Humidity: ${f.humidityPercent}%`);
+  }
+  const classification = assessment(point);
+  line(`Severity: ${severityPresentation[classification.severity].label}`);
+  line(classification.explanation);
+  for (const hazard of classification.hazards) {
+    const measurement = hazardMeasurement(hazard.measurement);
+    line(
+      `${hazard.label}${measurement ? ` · ${measurement}` : ""}. ${hazard.explanation}`,
+    );
   }
   return content;
 }
@@ -96,16 +110,24 @@ export function createWeatherLayer(
       for (const point of points) {
         const badge = document.createElement("span");
         badge.className = "weather-map-pin";
+        const severity = assessment(point).severity;
+        const appearance = severityPresentation[severity];
+        badge.style.borderColor = appearance.color;
         badge.dataset.availability = point.status;
         badge.setAttribute("aria-hidden", "true");
         badge.textContent = forecastIcon(
           point.status === "available" ? point.forecast : undefined,
         ).glyph;
+        const status = document.createElement("span");
+        status.className = "weather-pin-severity";
+        status.style.background = appearance.color;
+        status.textContent = appearance.symbol;
+        badge.append(status);
         const namedStop = point.kind !== "intermediate";
         const marker = new AdvancedMarkerElement({
           map,
           position: point.coordinate,
-          title: `${pointName(point)} weather · ${describeWeather(point)}`,
+          title: `${pointName(point)} weather · ${describeWeather(point)} · ${appearance.label}`,
           gmpClickable: true,
           anchorLeft: namedStop ? "-130%" : "-50%",
           anchorTop: namedStop ? "-135%" : "-95%",

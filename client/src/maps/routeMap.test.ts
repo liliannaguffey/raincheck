@@ -8,6 +8,7 @@ const sdk = vi.hoisted(() => ({
   extend: vi.fn(),
   polyline: vi.fn(),
   detach: vi.fn(),
+  options: vi.fn(),
   markers: [] as (HTMLElement & { map: unknown })[],
   content: vi.fn<(element: HTMLElement) => void>(),
   open: vi.fn(),
@@ -23,6 +24,7 @@ vi.mock("./google", () => ({
         },
         Polyline: class {
           setMap = sdk.detach;
+          setOptions = sdk.options;
           constructor(options: unknown) {
             sdk.polyline(options);
           }
@@ -90,7 +92,7 @@ beforeEach(() => {
   sdk.markers.length = 0;
 });
 
-test("fits the route, draws the blue path, and labels only trip stops in normal mode", async () => {
+test("fits the route, draws the gray path, and labels only trip stops in normal mode", async () => {
   const controller = new AbortController();
   await drawRoute(
     document.createElement("div"),
@@ -99,7 +101,7 @@ test("fits the route, draws the blue path, and labels only trip stops in normal 
     controller.signal,
   );
   expect(sdk.polyline).toHaveBeenCalledWith(
-    expect.objectContaining({ path: coordinates, strokeColor: "#2563eb" }),
+    expect.objectContaining({ path: coordinates, strokeColor: "#64748b" }),
   );
   expect(sdk.fit).toHaveBeenCalledOnce();
   expect(sdk.markers).toHaveLength(3);
@@ -204,4 +206,63 @@ test("overlays weather markers on the existing map and shows point details witho
   expect(sdk.markers.every((marker) => marker.map === null)).toBe(true);
   available.dispatchEvent(new Event("gmp-click"));
   expect(select).toHaveBeenCalledOnce();
+});
+
+test("colors road sections and emphasizes selected sections without refitting the map", async () => {
+  const controller = new AbortController();
+  const map = await drawRoute(
+    document.createElement("div"),
+    result,
+    false,
+    controller.signal,
+  );
+  const start = result.samples[0]!;
+  const end = result.samples[1]!;
+  map.setSections([
+    {
+      id: "known",
+      start,
+      end,
+      coordinates: coordinates.slice(0, 2),
+      severity: "hazardous",
+      durationSeconds: 1800,
+      distanceMeters: 1000,
+      hazards: [],
+    },
+    {
+      id: "gap",
+      start: end,
+      end: result.samples[3]!,
+      coordinates: coordinates.slice(1),
+      severity: "unknown",
+      durationSeconds: 3600,
+      distanceMeters: 2000,
+      hazards: [],
+    },
+  ]);
+  expect(sdk.polyline).toHaveBeenNthCalledWith(
+    2,
+    expect.objectContaining({
+      strokeColor: "#b91c1c",
+      path: coordinates.slice(0, 2),
+    }),
+  );
+  expect(sdk.polyline).toHaveBeenNthCalledWith(
+    3,
+    expect.objectContaining({
+      strokeColor: "#64748b",
+      path: coordinates.slice(1),
+    }),
+  );
+  map.highlightSections(new Set(["known"]));
+  expect(sdk.options).toHaveBeenNthCalledWith(
+    1,
+    expect.objectContaining({ strokeWeight: 8, strokeOpacity: 0.95 }),
+  );
+  expect(sdk.options).toHaveBeenNthCalledWith(
+    2,
+    expect.objectContaining({ strokeWeight: 5, strokeOpacity: 0.32 }),
+  );
+  expect(sdk.fit).toHaveBeenCalledOnce();
+  controller.abort();
 });

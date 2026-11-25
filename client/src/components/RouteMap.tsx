@@ -1,4 +1,8 @@
-import type { RouteResponse, RouteWeatherPoint } from "@raincheck/shared";
+import type {
+  RouteResponse,
+  RouteWeatherPoint,
+  RouteWeatherSegment,
+} from "@raincheck/shared";
 import { useEffect, useRef, useState } from "react";
 import { onMapsAuthFailure } from "../maps/google";
 import { drawRoute } from "../maps/routeMap";
@@ -10,11 +14,15 @@ export function RouteMap({
   weatherPoints,
   selectedWeather,
   onWeatherSelect,
+  sections,
+  highlightedSections,
 }: {
   result: RouteResponse;
   weatherPoints?: RouteWeatherPoint[];
   selectedWeather?: string;
   onWeatherSelect?: (id: string) => void;
+  sections?: RouteWeatherSegment[];
+  highlightedSections?: ReadonlySet<string>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const weatherLayer = useRef<Awaited<ReturnType<typeof drawRoute>>>(null);
@@ -54,6 +62,15 @@ export function RouteMap({
   useEffect(() => {
     if (state === "ready") weatherLayer.current?.select(selectedWeather);
   }, [state, weatherPoints, selectedWeather]);
+
+  useEffect(() => {
+    if (state === "ready") weatherLayer.current?.setSections(sections ?? []);
+  }, [state, sections]);
+
+  useEffect(() => {
+    if (state === "ready")
+      weatherLayer.current?.highlightSections(highlightedSections);
+  }, [state, sections, highlightedSections]);
 
   return (
     <div className="relative mt-4 h-80 overflow-hidden rounded-xl border border-line bg-canvas sm:h-104">
