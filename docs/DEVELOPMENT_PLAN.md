@@ -26,12 +26,16 @@ The preview interprets departure input in the device’s time zone, stores it as
 
 ## Phase 3 — Google Maps integration
 
-- Configure Maps JavaScript, Places, and Routes APIs. Add autocomplete, driving directions, route map, endpoint markers, distance, and duration.
+- [x] Configure Maps JavaScript, Places API (New), Routes API, and Time Zone API.
 - [x] Implement timed geometry interpolation, distance fallback, and origin-zone time utilities with unit tests.
 - [x] Connect the Google providers and verify the route API with mocked responses.
 - [x] Connect Places autocomplete, the planner, and the driving route summary.
 - [x] Render the interactive map and optional debug markers.
-- [ ] Verify live calls with configured Google credentials.
+- [x] Document Google API setup, usage, timing estimates, and interpolation in the README and [route sampling guide](ROUTE_SAMPLING.md).
+- [x] Pass automated checks and Chrome smoke tests with mocked Google Maps.
+- [ ] Verify live Google API calls after the browser and server keys are configured.
+
+Core functionality is implemented and awaiting live provider verification. Lint, formatting, both production builds with TypeScript checks, 8 frontend tests, and 25 backend tests passed. Chrome smoke tests at 320 px and 1440 px exercised autocomplete, route submission, the map, and a sample marker with stubbed Google data. The running API returned the expected missing-key error. The route API takes an origin-local departure and returns UTC samples. Named stops use local time when Google returns a zone. Unresolved display zones use UTC. Estimates assume no additional stop time. The results page identifies routes with distance-based interpolation.
 
 ## Phase 4 — Weather API integration
 
