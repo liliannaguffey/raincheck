@@ -1,10 +1,22 @@
-import type { RouteRequest, RouteResponse } from "@raincheck/shared";
+import type {
+  RouteHazardSection,
+  RouteRequest,
+  RouteResponse,
+} from "@raincheck/shared";
 import { ArrowLeft, MapPin } from "lucide-react";
-import { segmentRouteWeather } from "@raincheck/shared/route-weather";
-import { useMemo, useState } from "react";
+import {
+  groupRouteHazards,
+  segmentRouteWeather,
+  summarizeRouteWeather,
+} from "@raincheck/shared/route-weather";
+import { useCallback, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 import { WeatherTimeline } from "../components/WeatherTimeline";
 import { useRouteWeather } from "../weather/useRouteWeather";
+import {
+  HazardAdvisories,
+  RouteWeatherSummary,
+} from "../components/RouteWeatherSummary";
 import { SeverityLegend } from "../components/SeverityLegend";
 import { RouteMap } from "../components/RouteMap";
 import { ActionLink, Card } from "../components/ui";
@@ -44,7 +56,28 @@ function TripResults({
     () => segmentRouteWeather(result, points ?? []),
     [result, points],
   );
+  const summary = useMemo(
+    () => summarizeRouteWeather(sections, points ?? []),
+    [sections, points],
+  );
+  const advisories = useMemo(
+    () => groupRouteHazards(result.samples, points ?? [], sections),
+    [result.samples, points, sections],
+  );
   const [selectedWeather, setSelectedWeather] = useState<string>();
+  const [selectedAdvisory, setSelectedAdvisory] = useState<string>();
+  const highlightedSections = useMemo(() => {
+    const advisory = advisories.find(({ id }) => id === selectedAdvisory);
+    return advisory ? new Set(advisory.segmentIds) : undefined;
+  }, [advisories, selectedAdvisory]);
+  const selectWeather = useCallback((id: string) => {
+    setSelectedWeather(id);
+    setSelectedAdvisory(undefined);
+  }, []);
+  function selectAdvisory(advisory: RouteHazardSection) {
+    setSelectedAdvisory(advisory.id);
+    setSelectedWeather(advisory.start.id);
+  }
   const { route, departureUtc, arrivalUtc, samples } = result;
 
   return (
@@ -120,9 +153,10 @@ function TripResults({
           <RouteMap
             result={result}
             sections={sections}
+            highlightedSections={highlightedSections}
             weatherPoints={weather.data?.points}
             selectedWeather={selectedWeather}
-            onWeatherSelect={setSelectedWeather}
+            onWeatherSelect={selectWeather}
           />
           <SeverityLegend />
           {result.sampling === "distance-fallback" && (
@@ -132,10 +166,20 @@ function TripResults({
           )}
         </Card>
       </div>
+      {points && (
+        <>
+          <RouteWeatherSummary summary={summary} advisories={advisories} />
+          <HazardAdvisories
+            advisories={advisories}
+            selected={selectedAdvisory}
+            onSelect={selectAdvisory}
+          />
+        </>
+      )}
       <WeatherTimeline
         weather={weather}
         selected={selectedWeather}
-        onSelect={setSelectedWeather}
+        onSelect={selectWeather}
       />
     </section>
   );

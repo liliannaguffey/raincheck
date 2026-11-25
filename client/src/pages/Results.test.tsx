@@ -276,3 +276,96 @@ test("synchronizes the timeline and map selection without fetching again", async
   expect(origin).toHaveAttribute("aria-pressed", "false");
   expect(fetcher).toHaveBeenCalledOnce();
 });
+
+const classifiedWeather: RouteWeatherResponse = {
+  ...weather,
+  points: [
+    {
+      ...first,
+      status: "available",
+      offsetSeconds: 0,
+      retrievedAtUtc: first.arrivalUtc,
+      forecast: {
+        timestampUtc: first.arrivalUtc,
+        temperatureC: 20,
+        description: "moderate rain",
+        iconId: "10d",
+      },
+      classification: {
+        severity: "caution",
+        availability: "available",
+        completeness: "sufficient",
+        explanation: "Rain may reduce traction.",
+        hazards: [
+          {
+            id: "rain",
+            category: "rain",
+            severity: "caution",
+            label: "Moderate rain",
+            explanation: "Rain may reduce traction.",
+          },
+        ],
+      },
+    },
+    {
+      ...last,
+      status: "available",
+      offsetSeconds: 0,
+      retrievedAtUtc: first.arrivalUtc,
+      forecast: {
+        timestampUtc: last.arrivalUtc,
+        temperatureC: 19,
+        description: "strong gusts",
+        iconId: "04d",
+      },
+      classification: {
+        severity: "hazardous",
+        availability: "available",
+        completeness: "sufficient",
+        explanation: "Strong gusts may affect steering.",
+        hazards: [
+          {
+            id: "gust",
+            category: "winds",
+            severity: "hazardous",
+            label: "Strong wind gusts",
+            explanation: "Strong gusts may affect steering.",
+            measurement: { value: 21, unit: "m/s", threshold: 20.6 },
+          },
+        ],
+      },
+    },
+  ],
+};
+
+test("shows the accessible severity legend, route exposure and linked weather advisories", async () => {
+  const fetcher = vi
+    .fn<typeof fetch>()
+    .mockResolvedValue(Response.json(classifiedWeather));
+  openResults(fetcher);
+  const legend = screen.getByRole("list", { name: "Route weather legend" });
+  expect(
+    within(legend).getByText("Weather unavailable or insufficient"),
+  ).toBeVisible();
+  const summary = await screen.findByRole("region", {
+    name: "Weather summary",
+  });
+  expect(
+    within(summary).getByText("Potentially hazardous", { exact: true }),
+  ).toBeVisible();
+  expect(within(summary).getByText("100%", { exact: true })).toBeVisible();
+  expect(within(summary).getByText("5 hr 30 min")).toBeVisible();
+  const advisories = screen.getByRole("region", {
+    name: "RainCheck weather advisories",
+  });
+  expect(within(advisories).getByText(/47 mph/)).toBeVisible();
+  const highlight = within(advisories).getByRole("button", {
+    name: "Highlight strong wind gusts",
+  });
+  await userEvent.click(highlight);
+  expect(highlight).toHaveAttribute("aria-pressed", "true");
+  expect(
+    screen.getByRole("region", { name: "Interactive driving route map" }),
+  ).toHaveAttribute("data-selection", "finish");
+  expect(fetcher).toHaveBeenCalledOnce();
+});

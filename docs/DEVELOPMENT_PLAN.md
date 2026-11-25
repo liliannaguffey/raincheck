@@ -64,7 +64,8 @@ Phase 4 is signed off. The automated suite passed 14 frontend and 62 backend tes
 - [x] Classify forecasts using centralized thresholds and retain individual hazard evidence.
 - [x] Segment existing road geometry and summarize weather coverage and exposure.
 - [x] Render severity-colored route sections, an accessible legend, and marker classifications.
-- [ ] Add grouped advisories, route summaries, and local weather filters.
+- [x] Add grouped advisories and weighted weather summaries.
+- [ ] Add filters and timeline severity indicators.
 - [ ] Run automated and live verification.
 - Terrain assessment is pending confirmed Elevation API configuration and budget approval.
 
