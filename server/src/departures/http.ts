@@ -94,14 +94,13 @@ export function departureRouter(recommend: DepartureService) {
       try {
         res.json(await recommend(request));
       } catch {
-        res
-          .status(502)
-          .json({
-            error: {
-              code: "DEPARTURE_COMPARISON_FAILED",
-              message: "Departure times could not be compared. Try again.",
-            },
-          });
+        res.status(502);
+        res.json({
+          error: {
+            code: "DEPARTURE_COMPARISON_FAILED",
+            message: "Departure times could not be compared. Try again.",
+          },
+        });
       }
     },
   );

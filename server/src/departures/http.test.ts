@@ -200,3 +200,17 @@ test("preserves the original on equivalent forecast slots and avoids requests ou
   expect(future.body.status).toBe("insufficient-coverage");
   expect(forecast).not.toHaveBeenCalled();
 });
+
+test("returns a structured error when the comparison service fails unexpectedly", async () => {
+  const recommend = vi
+    .fn()
+    .mockRejectedValue(new Error("private provider details"));
+  const response = await request(createApp(undefined, undefined, recommend))
+    .post("/api/departures/recommendations")
+    .send(input)
+    .expect(502);
+  expect(response.body.error.code).toBe("DEPARTURE_COMPARISON_FAILED");
+  expect(JSON.stringify(response.body)).not.toContain(
+    "private provider details",
+  );
+});
