@@ -78,7 +78,10 @@ Phase 5 weather severity is signed off. All 108 automated tests passed, includin
 - [x] Generate bounded departure candidates and recalculate sample arrivals in UTC.
 - [x] Score and rank comparable departure candidates and reuse cached forecasts.
 - [x] Add flexibility controls, exposure comparisons, and preview, apply, and original-trip restoration.
-- [ ] Verify the implementation with fixtures and a representative live trip.
+- [x] Verify the implementation with fixtures and a representative live trip.
+- [x] Document the score, coverage rules, ranking, and traffic assumptions in the [departure optimization guide](DEPARTURE_OPTIMIZATION.md).
+
+Phase 6 is signed off. All 140 automated tests passed, including 20 frontend and 120 backend tests. ESLint, formatting, TypeScript checking, and both production builds passed. Chrome verified preview, apply, and restore at 320 px and 1440 px with deterministic improvement data. A live 331-mile Gainesville-to-Atlanta trip had forecasts for all 11 samples, and all 13 candidate scores and shifted arrivals agreed with the score formula and original driving time. The live forecast yielded no meaningful improvement. The comparison made zero additional OpenWeather calls beyond the initial 11 series, and weather filters made no extra route, map-load, or weather requests. A synthetic warm-cache run evaluated 25 candidates across 256 samples in about 108 ms without an additional provider call. Terrain remains deferred pending approved Elevation API configuration.
 
 ## Phase 7 — PostgreSQL and saved trips
 

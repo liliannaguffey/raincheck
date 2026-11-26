@@ -54,6 +54,12 @@ Trip Results colors road sections green for favorable forecasts, amber for cauti
 
 The classifications use configurable forecast heuristics. Conditions between samples and actual road surfaces may differ. Check official weather advisories and road reports before traveling. Terrain assessment is pending Elevation API configuration and budget approval. [Weather severity and thresholds](docs/WEATHER_SEVERITY.md)
 
+## Compare departure times
+
+Trip Results compares nearby departure times after the original route weather loads. Choose a flexibility window and an earlier or later preference to narrow the comparison. The cards show estimated arrival, time in each weather severity, score changes, and individual hazard differences. The baseline and alternatives require at least 90% classified driving time, and alternatives must preserve the baseline's coverage.
+
+Preview or apply a recommendation from the cards, or return to the original departure. The map and timeline use the evaluated forecasts without recalculating the route. The score estimates weather exposure under fixed driving-time assumptions. Three-hour forecast slots can make nearby departures equivalent. [Departure optimization guide](docs/DEPARTURE_OPTIMIZATION.md)
+
 ## Checks
 
 ```sh
