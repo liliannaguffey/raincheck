@@ -238,6 +238,7 @@ export interface DepartureRecommendation extends DepartureCandidate {
 export interface DepartureResponse {
   baseline: DepartureCandidate;
   evaluatedCount: number;
+  candidates: DepartureCandidate[];
   recommendations: DepartureRecommendation[];
   status:
     | "available"

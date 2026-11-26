@@ -91,6 +91,12 @@ test("reuses route weather cache across alternatives and returns route-free prev
       },
     ],
   });
+  expect(result.body.candidates).toHaveLength(13);
+  expect(result.body.candidates[0]).toMatchObject({
+    offsetSeconds: -10800,
+    departureUtc: "2030-06-15T09:00:00Z",
+  });
+  expect(result.body.candidates[0]).not.toHaveProperty("points");
   expect(result.body.recommendations[0]).not.toHaveProperty("route");
   expect(fetchSeries).toHaveBeenCalledTimes(2);
 });
@@ -166,12 +172,10 @@ test("returns coverage and provider failure states without losing the baseline",
 });
 
 test("preserves the original on equivalent forecast slots and avoids requests outside the horizon", async () => {
-  const fair = vi
-    .fn()
-    .mockResolvedValue({
-      ...series,
-      forecasts: slots.map((slot) => ({ ...slot, conditionId: 800 })),
-    });
+  const fair = vi.fn().mockResolvedValue({
+    ...series,
+    forecasts: slots.map((slot) => ({ ...slot, conditionId: 800 })),
+  });
   const res = await configuration(fair)
     .post("/api/departures/recommendations")
     .send(input)

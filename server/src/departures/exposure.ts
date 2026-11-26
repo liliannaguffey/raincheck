@@ -106,6 +106,23 @@ export function evaluateExposure(
 
 export type EvaluatedDeparture = ReturnType<typeof evaluateExposure>;
 
+export function comparisonEligibility(
+  baseline: EvaluatedDeparture,
+  alternative: EvaluatedDeparture,
+): DepartureCandidate["eligibility"] {
+  if (alternative.candidate.eligibility !== "eligible")
+    return alternative.candidate.eligibility;
+  const lost = baseline.intervals.some((interval, index) => {
+    const next = alternative.intervals[index];
+    return (
+      interval.durationSeconds > 0 &&
+      interval.severity !== "unknown" &&
+      (!next || next.severity === "unknown")
+    );
+  });
+  return lost ? "reduced-coverage" : "eligible";
+}
+
 export function rankDepartures(
   baseline: EvaluatedDeparture,
   alternatives: EvaluatedDeparture[],
@@ -118,7 +135,7 @@ export function rankDepartures(
     .flatMap((evaluated) => {
       const { candidate, intervals } = evaluated;
       if (
-        candidate.eligibility !== "eligible" ||
+        comparisonEligibility(baseline, evaluated) !== "eligible" ||
         evaluated.signature === baseline.signature
       )
         return [];
@@ -127,11 +144,7 @@ export function rankDepartures(
       for (const [index, interval] of baseline.intervals.entries()) {
         if (interval.severity === "unknown" || !interval.durationSeconds)
           continue;
-        const alternative = intervals[index];
-        if (!alternative || alternative.severity === "unknown") {
-          candidate.eligibility = "reduced-coverage";
-          return [];
-        }
+        const alternative = intervals[index]!;
         comparableSeconds += interval.durationSeconds;
         weightedReduction +=
           interval.durationSeconds *

@@ -7,6 +7,7 @@ import type {
 import { expect, test } from "vitest";
 import { shiftArrivals } from "./candidates.ts";
 import {
+  comparisonEligibility,
   evaluateExposure,
   exposureDefaults,
   rankDepartures,
@@ -162,7 +163,8 @@ test("rejects candidates that lose baseline coverage even when both are above 90
   );
   expect(alternative.candidate.coverageFraction).toBeGreaterThan(0.9);
   expect(rankDepartures(original, [alternative])).toEqual([]);
-  expect(alternative.candidate.eligibility).toBe("reduced-coverage");
+  expect(comparisonEligibility(original, alternative)).toBe("reduced-coverage");
+  expect(alternative.candidate.eligibility).toBe("eligible");
 });
 
 test("improvement must be meaningful and comparable to the baseline", () => {

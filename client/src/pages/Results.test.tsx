@@ -486,6 +486,7 @@ const baseline: DepartureCandidate = {
 const noImprovement: DepartureResponse = {
   baseline,
   evaluatedCount: 13,
+  candidates: [baseline],
   recommendations: [],
   status: "no-improvement",
   minimumCoverage: 0.9,

@@ -2,6 +2,7 @@ import type { DepartureRequest, DepartureResponse } from "@raincheck/shared";
 import type { RouteWeatherService } from "../weather/service.ts";
 import { generateDepartures, shiftArrivals } from "./candidates.ts";
 import {
+  comparisonEligibility,
   evaluateExposure,
   exposureDefaults,
   rankDepartures,
@@ -33,6 +34,7 @@ export function createDepartureService(
     const response: DepartureResponse = {
       baseline: baseline.candidate,
       evaluatedCount: 1,
+      candidates: [baseline.candidate],
       recommendations: [],
       minimumCoverage: options.minimumCoverage,
       resolutionSeconds: baselineWeather.resolutionSeconds,
@@ -68,15 +70,20 @@ export function createDepartureService(
         }),
     );
     const recommendations = rankDepartures(baseline, alternatives, options);
+    const summaries = alternatives.map((alternative) => ({
+      ...alternative.candidate,
+      eligibility: comparisonEligibility(baseline, alternative),
+    }));
     return {
       ...response,
       evaluatedCount: alternatives.length + 1,
+      candidates: [...summaries, baseline.candidate].sort(
+        (a, b) => a.offsetSeconds - b.offsetSeconds,
+      ),
       recommendations,
       status: recommendations.length
         ? "available"
-        : alternatives.some(
-              ({ candidate }) => candidate.eligibility === "eligible",
-            )
+        : summaries.some(({ eligibility }) => eligibility === "eligible")
           ? "no-improvement"
           : "insufficient-coverage",
     };
